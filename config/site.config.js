@@ -14,10 +14,10 @@ module.exports = {
   icon: '/icons/128.png',
 
   // The name of your website. Present alongside your icon.
-  title: "AK1116q's OneDrive",
+  title: '偷吃猫娘打咩哟的看番云盘',
 
   // The folder that you are to share publicly with onedrive-cf-index-ng. Use '/' if you want to share your root folder.
-  baseDirectory: process.env.BASE_DIRECTORY || '/',
+  baseDirectory: process.env.BASE_DIRECTORY || '/番剧',
 
   // [OPTIONAL] This represents the maximum number of items that one directory lists, pagination supported.
   // Do note that this is limited up to 200 items by the upstream OneDrive API.
@@ -47,12 +47,7 @@ module.exports = {
   // [OPTIONAL] This is an array of names and links for setting your social information and links.
   // In the latest update, all brand icons inside font awesome is supported and the icon to render is based on the name
   // you provide. See the documentation for details.
-  links: [
-    {
-      name: 'GitHub',
-      link: 'https://github.com/AK1116q',
-    },
-  ],
+  links: [],
 
   // This is a day.js-style datetime format string to format datetimes in the app. Ref to
   // https://day.js.org/docs/en/display/format for detailed specification. The default value is ISO 8601 full datetime
@@ -63,7 +58,7 @@ module.exports = {
   // Note: This BYPASSES password protection for specific file types
   opds: {
     enabled: false,
-    title: "AK1116q's OneDrive",
+    title: '偷吃猫娘打咩哟的看番云盘',
     description: 'OPDS catalog powered by onedrive-cf-index-ng.',
     fileExtensions: ['.epub', '.pdf', '.mobi', '.azw3', '.azw', '.cbz', '.cbr'],
   },
