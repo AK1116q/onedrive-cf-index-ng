@@ -1,0 +1,8 @@
+name = "onedrive-cf-index-ng-ak1116q"
+pages_build_output_dir = ".vercel/output/static"
+compatibility_date = "2026-06-12"
+compatibility_flags = ["nodejs_compat"]
+
+[[kv_namespaces]]
+binding = "ONEDRIVE_CF_INDEX_KV"
+id = "7870f069e6ba4dfc8b673d6a9d6e2964"
