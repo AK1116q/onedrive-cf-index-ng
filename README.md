@@ -116,7 +116,7 @@ Live demo at [lyc8503's Fileshare](https://pan.lyc8503.net).
     <tr>
       <td>PDF, EPUB, markdown, code, plain text</td>
       <td>For previewing images and documents with thumbnails</td>
-      <td>mp4, mp3, ..., play online or with IINA, PotPlayer ... with subtitles!</td>
+      <td>mp4, mp3, ..., play online or with PotPlayer ... with subtitles!</td>
     </tr>
     <tr>
       <td>
