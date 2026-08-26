@@ -9,6 +9,23 @@
   <a href="https://github.com/lyc8503/onedrive-cf-index-ng/wiki"><img src="https://img.shields.io/badge/Documentation-black?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAABeUlEQVRIie2VwUrDQBCGZ5ZubNmS0Ba9tF6CUqTHpg+g+AhCn8R30DfpM3jRezdHoZJroaBJQ2qgsIEdD7YSsCtJVBTxP87u/t/u7M4swDcLTQNSSseyLFbERCmlPc9LCgF83z/jnE9s294vvk+AJEmesiwbe553awQEQbCXZVnY7/ebjBXa/Ju01jCbzVIA6AwGA7WN1/KT4jg+6vV6TcYYpGlKq9UKiQgAAOr1OnU6HWNKGWPQarWa8/n8GADudwIQ0UJ89QjDEKMoOiEitRm7tm37gnNuPAUiAiJa+VjNNJmIYDgcPiAiAQD4vh9tT1NG5RJdQT8PkFKak/5ZgJTyUgjxPJ1Ob4josArAeMmWZYHrulftdhvX6/X5YrEwPtFKgG63C7ApxEajga7rVvH/BZf8D/hjACJSVRpabj1su+9OgBAiiOM41VqXNtdaw3K5TIUQQT7+rjqllKec84njOAdlAEmSPCqlxqPR6O5DQA70JZ/+t+sFAb2R22dSZ7wAAAAASUVORK5CYII=" alt="Documentation" /></a>
 </div>
 
+## Personal fork
+
+This repository is my personal deployment and customisation of
+[lyc8503/onedrive-cf-index-ng](https://github.com/lyc8503/onedrive-cf-index-ng), which itself is forked from
+[spencerwooo/onedrive-vercel-index](https://github.com/spencerwooo/onedrive-vercel-index).
+
+My work in this fork focuses on turning the upstream project into a practical anime-focused OneDrive index site:
+
+- Deployed the Next.js project to Cloudflare Pages with KV storage.
+- Configured Microsoft OneDrive OAuth for a personal OneDrive account with reduced read-only Graph API scope.
+- Restricted the public index to a dedicated `/番剧` OneDrive directory.
+- Customised the site title, navigation links, footer, and public-facing layout for a private anime library.
+- Integrated the site into a local automation workflow using ANI-RSS, qBittorrent, OneDrive sync, and subtitle organisation.
+- Documented the deployment and operational choices so the project can be used as a portfolio example without hiding its open-source origins.
+
+The original license and upstream attribution are preserved. Runtime credentials, OAuth tokens, Cloudflare secrets, and local downloader settings are intentionally not committed.
+
 ## What's different
 - Now it can be deployed on Cloudflare Pages for free!
 - Also support [Docker Deployment](https://github.com/lyc8503/onedrive-cf-index-ng/wiki/Docker-Deployment) now!
