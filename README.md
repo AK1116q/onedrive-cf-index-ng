@@ -45,6 +45,18 @@ The original license and upstream attribution are preserved. Runtime credentials
 
 本仓库不会提交 OAuth token、Cloudflare 密钥、OneDrive 凭证、下载器账号密码等运行时敏感配置。
 
+## 适用场景与限制
+
+这个项目更适合已经拥有较大 OneDrive 存储空间的用户。番剧、电影等视频文件体积较大，如果 OneDrive 容量较小，自动追番和云端索引的实际价值会明显降低；因此它更像是一个个人媒体库索引与轻量级分发方案，而不是通用网盘替代品。
+
+在实际使用中还需要注意：
+
+- Cloudflare Pages 主要负责前端展示和 API 转发，真正的文件存储能力取决于 OneDrive 容量。
+- 浏览器对 `MKV`、`HEVC/H.265`、`10bit`、`ASS` 字幕等格式支持有限，网页播放体验依赖片源编码。
+- OneDrive 直链播放速度受网络环境和微软 CDN 影响，大体积高码率视频更适合先同步到本地后播放。
+- 自动订阅下载依赖 RSS 源稳定性、字幕组发布时间和 BT 做种情况。
+- 本地自动化链路依赖 ANI-RSS、qBittorrent 和 OneDrive 客户端持续运行。
+
 ## What's different
 - Now it can be deployed on Cloudflare Pages for free!
 - Also support [Docker Deployment](https://github.com/lyc8503/onedrive-cf-index-ng/wiki/Docker-Deployment) now!

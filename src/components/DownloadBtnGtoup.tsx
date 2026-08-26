@@ -1,4 +1,4 @@
-import { MouseEventHandler, useState } from 'react'
+import { MouseEventHandler } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { IconProp } from '@fortawesome/fontawesome-svg-core'
 import toast from 'react-hot-toast'
@@ -9,7 +9,6 @@ import { useRouter } from 'next/router'
 
 import { getBaseUrl } from '../utils/getBaseUrl'
 import { getStoredToken } from '../utils/protectedRouteHandler'
-import CustomEmbedLinkMenu from './CustomEmbedLinkMenu'
 
 const btnStyleMap = (btnColor?: string) => {
   const colorMap = {
@@ -66,37 +65,26 @@ const DownloadButtonGroup = () => {
   const hashedToken = getStoredToken(asPath)
 
   const clipboard = useClipboard()
-  const [menuOpen, setMenuOpen] = useState(false)
-
   return (
-    <>
-      <CustomEmbedLinkMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} path={asPath} />
-      <div className="flex flex-wrap justify-center gap-2">
-        <DownloadButton
-          onClickCallback={() => window.open(`/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
-          btnColor="blue"
-          btnText={'Download'}
-          btnIcon="file-download"
-          btnTitle={'Download the file directly through OneDrive'}
-        />
-        <DownloadButton
-          onClickCallback={() => {
-            clipboard.copy(`${getBaseUrl()}/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`)
-            toast.success('Copied direct link to clipboard.')
-          }}
-          btnColor="pink"
-          btnText={'Copy direct link'}
-          btnIcon="copy"
-          btnTitle={'Copy the permalink to the file to the clipboard'}
-        />
-        <DownloadButton
-          onClickCallback={() => setMenuOpen(true)}
-          btnColor="teal"
-          btnText={'Customise link'}
-          btnIcon="pen"
-        />
-      </div>
-    </>
+    <div className="flex flex-wrap justify-center gap-2">
+      <DownloadButton
+        onClickCallback={() => window.open(`/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
+        btnColor="blue"
+        btnText={'Download'}
+        btnIcon="file-download"
+        btnTitle={'Download the file directly through OneDrive'}
+      />
+      <DownloadButton
+        onClickCallback={() => {
+          clipboard.copy(`${getBaseUrl()}/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`)
+          toast.success('Copied direct link to clipboard.')
+        }}
+        btnColor="pink"
+        btnText={'Copy direct link'}
+        btnIcon="copy"
+        btnTitle={'Copy the permalink to the file to the clipboard'}
+      />
+    </div>
   )
 }
 
