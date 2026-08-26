@@ -147,11 +147,6 @@ const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
             btnText="PotPlayer"
             btnImage="/players/potplayer.png"
           />
-          <DownloadButton
-            onClickCallback={() => window.open(`intent://${getBaseUrl()}${videoUrl}#Intent;type=video/any;package=is.xyz.mpv;scheme=https;end;`)}
-            btnText="mpv-android"
-            btnImage="/players/mpv-android.png"
-          />
         </div>
       </DownloadBtnContainer>
     </>
