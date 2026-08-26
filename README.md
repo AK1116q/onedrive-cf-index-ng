@@ -26,6 +26,25 @@ My work in this fork focuses on turning the upstream project into a practical an
 
 The original license and upstream attribution are preserved. Runtime credentials, OAuth tokens, Cloudflare secrets, and local downloader settings are intentionally not committed.
 
+## 个人二次开发说明
+
+本仓库是我基于开源项目
+[lyc8503/onedrive-cf-index-ng](https://github.com/lyc8503/onedrive-cf-index-ng)
+进行部署和定制的个人项目；该项目本身基于
+[spencerwooo/onedrive-vercel-index](https://github.com/spencerwooo/onedrive-vercel-index)
+发展而来。
+
+我在这个 fork 中主要完成了一个面向个人番剧库的 OneDrive 索引站实践：
+
+- 将 Next.js 项目部署到 Cloudflare Pages，并配置 KV 存储。
+- 为个人 OneDrive 账号配置 Microsoft OAuth，并缩小 Graph API 权限范围为只读访问。
+- 将公开索引范围限制到 OneDrive 中专门的 `/番剧` 目录。
+- 修改站点标题、导航链接、页脚和展示配置，使其更适合作为个人看番云盘。
+- 将站点与本地 ANI-RSS、qBittorrent、OneDrive 同步和字幕整理流程结合，实现自动订阅、下载、同步和网页索引。
+- 保留原项目许可证和作者署名，同时补充自己的部署、配置和自动化集成说明，便于作为简历项目展示。
+
+本仓库不会提交 OAuth token、Cloudflare 密钥、OneDrive 凭证、下载器账号密码等运行时敏感配置。
+
 ## What's different
 - Now it can be deployed on Cloudflare Pages for free!
 - Also support [Docker Deployment](https://github.com/lyc8503/onedrive-cf-index-ng/wiki/Docker-Deployment) now!
