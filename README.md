@@ -57,6 +57,17 @@ The original license and upstream attribution are preserved. Runtime credentials
 - 自动订阅下载依赖 RSS 源稳定性、字幕组发布时间和 BT 做种情况。
 - 本地自动化链路依赖 ANI-RSS、qBittorrent 和 OneDrive 客户端持续运行。
 
+## 自动部署
+
+本仓库使用 GitHub Actions 将 `main` 分支自动部署到 Cloudflare Pages。推送代码后，工作流会依次完成依赖安装、代码检查、`next-on-pages` 构建和 `wrangler pages deploy` 发布。
+
+首次启用前，需要在 GitHub 仓库的 `Settings` -> `Secrets and variables` -> `Actions` 中添加两个 Repository secrets：
+
+- `CLOUDFLARE_API_TOKEN`：Cloudflare API Token，需要包含 Cloudflare Pages 部署权限。
+- `CLOUDFLARE_ACCOUNT_ID`：Cloudflare 账户 ID。
+
+配置完成后，每次推送到 `main` 都会自动发布到 `onedrive-cf-index-ng-ak1116q`。也可以在 GitHub 的 `Actions` 页面手动运行 `Deploy to Cloudflare Pages` 工作流。
+
 ## What's different
 - Now it can be deployed on Cloudflare Pages for free!
 - Also support [Docker Deployment](https://github.com/lyc8503/onedrive-cf-index-ng/wiki/Docker-Deployment) now!
