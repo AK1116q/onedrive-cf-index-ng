@@ -1,9 +1,9 @@
 import axios from 'redaxios'
-import type { NextApiRequest, NextApiResponse } from 'next'
-
 import { encodePath, getAccessToken } from '.'
 import apiConfig from '../../../config/api.config'
 import siteConfig from '../../../config/site.config'
+import { apiErrorResponse } from '../../utils/apiError'
+import { buildCacheKey, cacheHeaders, getCachedJson, putCachedJson } from '../../utils/cacheStore'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'edge'
@@ -35,14 +35,19 @@ export default async function handler(req: NextRequest): Promise<Response> {
   // Query parameter from request
   const { q: searchQuery = '' } = Object.fromEntries(req.nextUrl.searchParams)
 
-  // TODO: Set edge function caching for faster load times
-
   if (typeof searchQuery === 'string') {
     // Construct Microsoft Graph Search API URL, and perform search only under the base directory
     const searchRootPath = encodePath('/')
     const encodedPath = searchRootPath === '' ? searchRootPath : searchRootPath + ':'
 
     const searchApi = `${apiConfig.driveApi}/root${encodedPath}/search(q='${sanitiseQuery(searchQuery)}')`
+    const cacheKey = await buildCacheKey('search', [searchQuery])
+    const cached = await getCachedJson(cacheKey)
+    if (cached?.status === 'HIT') {
+      return NextResponse.json(cached.value, {
+        headers: cacheHeaders('HIT'),
+      })
+    }
 
     try {
       const { data } = await axios.get(searchApi, {
@@ -52,15 +57,19 @@ export default async function handler(req: NextRequest): Promise<Response> {
           top: siteConfig.maxItems,
         },
       })
+      await putCachedJson(cacheKey, data.value)
       return NextResponse.json(data.value, {
-        headers: {
-          'Cache-Control': apiConfig.cacheControlHeader,
-        },
+        headers: cacheHeaders('MISS'),
       })
     } catch (error: any) {
-      return new Response(JSON.stringify({ error: error?.response?.data ?? 'Internal server error.' }), {
-        status: error?.response?.status ?? 500,
-      })
+      if (cached?.status === 'STALE') {
+        return NextResponse.json(cached.value, {
+          headers: cacheHeaders('STALE', {
+            Warning: '110 - "Response served from stale KV cache after OneDrive request failed"',
+          }),
+        })
+      }
+      return apiErrorResponse(error)
     }
   } else {
     return NextResponse.json([])

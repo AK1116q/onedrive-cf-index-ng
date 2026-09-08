@@ -7,6 +7,8 @@ import siteConfig from '../../../config/site.config'
 import { getAuthPersonInfo, revealObfuscatedToken } from '../../utils/oAuthHandler'
 import { compareHashedToken } from '../../utils/protectedRouteHandler'
 import { getOdAuthTokens, storeOdAuthTokens } from '../../utils/odAuthTokenStore'
+import { apiErrorResponse } from '../../utils/apiError'
+import { buildCacheKey, cacheHeaders, getCachedJson, putCachedJson } from '../../utils/cacheStore'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'edge'
@@ -180,8 +182,6 @@ export default async function handler(req: NextRequest): Promise<Response> {
     return new Response('OK')
   }
 
-  // TODO: Set edge function caching for faster load times
-
   // If method is GET, then the API is a normal request to the OneDrive API for files or folders
   const { path = '/', next = '', sort = '' } = Object.fromEntries(req.nextUrl.searchParams)
 
@@ -214,12 +214,21 @@ export default async function handler(req: NextRequest): Promise<Response> {
   if (code !== 200) {
     return new Response(JSON.stringify({ error: message }), { status: code })
   }
+  const shouldUseKvCache = message === ''
 
   const requestPath = encodePath(cleanPath)
   // Handle response from OneDrive API
   const requestUrl = `${apiConfig.driveApi}/root${requestPath}`
   // Whether path is root, which requires some special treatment
   const isRoot = requestPath === ''
+  const cacheKey = shouldUseKvCache ? await buildCacheKey('drive', [cleanPath, next, sort]) : ''
+  const cached = shouldUseKvCache ? await getCachedJson(cacheKey) : null
+
+  if (cached?.status === 'HIT') {
+    return NextResponse.json(cached.value, {
+      headers: cacheHeaders('HIT'),
+    })
+  }
 
   // Querying current path identity (file or folder) and follow up query childrens in folder
   try {
@@ -249,37 +258,49 @@ export default async function handler(req: NextRequest): Promise<Response> {
         : null
 
       // Return paging token if specified
+      const responseBody = nextPage ? { folder: folderData, next: nextPage } : { folder: folderData }
+      if (shouldUseKvCache) {
+        await putCachedJson(cacheKey, responseBody)
+      }
+
       if (nextPage) {
         return NextResponse.json(
-          { folder: folderData, next: nextPage },
+          responseBody,
           {
             headers: {
-              'Cache-Control': apiConfig.cacheControlHeader,
+              ...cacheHeaders(shouldUseKvCache ? 'MISS' : 'BYPASS'),
             },
           }
         )
       } else {
         return NextResponse.json(
-          { folder: folderData },
+          responseBody,
           {
             headers: {
-              'Cache-Control': apiConfig.cacheControlHeader,
+              ...cacheHeaders(shouldUseKvCache ? 'MISS' : 'BYPASS'),
             },
           }
         )
       }
     }
+    const responseBody = { file: identityData }
+    if (shouldUseKvCache) {
+      await putCachedJson(cacheKey, responseBody)
+    }
     return NextResponse.json(
-      { file: identityData },
+      responseBody,
       {
-        headers: {
-          'Cache-Control': apiConfig.cacheControlHeader,
-        },
+        headers: cacheHeaders(shouldUseKvCache ? 'MISS' : 'BYPASS'),
       }
     )
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error?.response?.data ?? 'Internal server error.' }), {
-      status: error?.response?.code ?? 500,
-    })
+    if (cached?.status === 'STALE') {
+      return NextResponse.json(cached.value, {
+        headers: cacheHeaders('STALE', {
+          Warning: '110 - "Response served from stale KV cache after OneDrive request failed"',
+        }),
+      })
+    }
+    return apiErrorResponse(error)
   }
 }

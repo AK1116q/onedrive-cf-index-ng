@@ -17,6 +17,7 @@ import { DownloadButton } from '../DownloadBtnGtoup'
 import { DownloadBtnContainer, PreviewContainer } from './Containers'
 import FourOhFour from '../FourOhFour'
 import Loading from '../Loading'
+import VideoPlaybackNotice from './VideoPlaybackNotice'
 
 import 'plyr-react/plyr.css'
 
@@ -123,6 +124,7 @@ const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
             mpegts={mpegts}
           />
         )}
+        <VideoPlaybackNotice file={file} />
       </PreviewContainer>
 
       <DownloadBtnContainer>

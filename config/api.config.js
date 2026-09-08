@@ -31,4 +31,12 @@ module.exports = {
   // - stale-while-revalidate: allow serving stale content while revalidating on the edge
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
   cacheControlHeader: 'max-age=0, s-maxage=60, stale-while-revalidate',
+
+  // Cloudflare KV cache for OneDrive metadata responses.
+  // Only public, non-password-protected metadata is cached. Raw file content is never stored in KV.
+  kvCache: {
+    enabled: true,
+    ttlSeconds: 300,
+    staleSeconds: 86400,
+  },
 }

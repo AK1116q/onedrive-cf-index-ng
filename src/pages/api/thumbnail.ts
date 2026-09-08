@@ -5,6 +5,8 @@ import axios from 'redaxios'
 
 import { checkAuthRoute, encodePath, getAccessToken } from '.'
 import apiConfig from '../../../config/api.config'
+import { apiErrorResponse } from '../../utils/apiError'
+import { buildCacheKey, cacheHeaders, getCachedJson, putCachedJson } from '../../utils/cacheStore'
 import { NextRequest } from 'next/server'
 
 export const runtime = 'edge'
@@ -18,9 +20,6 @@ export default async function handler(req: NextRequest): Promise<Response> {
 
   // Get item thumbnails by its path since we will later check if it is protected
   const { path = '', size = 'medium', odpt = '' } = Object.fromEntries(req.nextUrl.searchParams)
-
-  // TODO: Set edge function caching for faster load times, if route is not protected
-  // if (odpt === '') res.setHeader('Cache-Control', apiConfig.cacheControlHeader)
 
   // Check whether the size is valid - must be one of 'large', 'medium', or 'small'
   if (size !== 'large' && size !== 'medium' && size !== 'small') {
@@ -43,13 +42,24 @@ export default async function handler(req: NextRequest): Promise<Response> {
   }
   // If message is empty, then the path is not protected.
   // Conversely, protected routes are not allowed to serve from cache.
-  // TODO
+  const shouldUseKvCache = message === ''
 
   const requestPath = encodePath(cleanPath)
   // Handle response from OneDrive API
   const requestUrl = `${apiConfig.driveApi}/root${requestPath}`
   // Whether path is root, which requires some special treatment
   const isRoot = requestPath === ''
+  const cacheKey = shouldUseKvCache ? await buildCacheKey('thumbnail', [cleanPath, size]) : ''
+  const cached = shouldUseKvCache ? await getCachedJson<string>(cacheKey) : null
+  if (cached?.status === 'HIT') {
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: cached.value,
+        ...cacheHeaders('HIT'),
+      },
+    })
+  }
 
   try {
     const { data } = await axios.get(`${requestUrl}${isRoot ? '' : ':'}/thumbnails`, {
@@ -58,13 +68,31 @@ export default async function handler(req: NextRequest): Promise<Response> {
 
     const thumbnailUrl = data.value && data.value.length > 0 ? (data.value[0] as OdThumbnail)[size].url : null
     if (thumbnailUrl) {
-      return Response.redirect(thumbnailUrl)
+      if (shouldUseKvCache) {
+        await putCachedJson(cacheKey, thumbnailUrl)
+      }
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: thumbnailUrl,
+          ...cacheHeaders(shouldUseKvCache ? 'MISS' : 'BYPASS'),
+        },
+      })
     } else {
       return new Response(JSON.stringify({ error: "The item doesn't have a valid thumbnail." }), { status: 400 })
     }
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error?.response?.data ?? 'Internal server error.' }), {
-      status: error?.response?.status,
-    })
+    if (cached?.status === 'STALE') {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: cached.value,
+          ...cacheHeaders('STALE', {
+            Warning: '110 - "Response served from stale KV cache after OneDrive request failed"',
+          }),
+        },
+      })
+    }
+    return apiErrorResponse(error)
   }
 }
