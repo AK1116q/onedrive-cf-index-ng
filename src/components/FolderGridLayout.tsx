@@ -11,10 +11,15 @@ import { Checkbox, ChildIcon, Downloading } from './FileListing'
 import { getStoredToken } from '../utils/protectedRouteHandler'
 import { coverPreviewLayout } from '../utils/coverPreviewLayout'
 import CoverHoverPreview from './CoverHoverPreview'
+import GeneratedCover from './GeneratedCover'
 
 const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   const hashedToken = getStoredToken(path)
-  const params = new URLSearchParams({ path: decodeURIComponent(path), size: 'large', v: '2' })
+  const params = new URLSearchParams({
+    path: decodeURIComponent(path),
+    size: 'large',
+    rev: c.lastModifiedDateTime,
+  })
   if (hashedToken) params.set('odpt', hashedToken)
   const thumbnailUrl = c.folder ? `/api/folder-cover?${params}` : `/api/thumbnail?${params}`
 
@@ -25,6 +30,11 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [previewLayout, setPreviewLayout] = useState<ReturnType<typeof coverPreviewLayout> | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
+
+  useEffect(() => {
+    setBrokenThumbnail(false)
+    setLoadedThumbnail(undefined)
+  }, [thumbnailUrl])
 
   const closePreview = () => {
     clearTimeout(timer.current)
@@ -79,11 +89,12 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
       onBlur={closePreview}
       onClick={closePreview}
     >
-      <div className="aspect-[3/4] overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:shadow-xl dark:border-gray-500/30 dark:bg-gray-800">
-        {thumbnailUrl && !brokenThumbnail ? (
+      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:shadow-xl dark:border-gray-500/30 dark:bg-gray-800">
+        <GeneratedCover name={c.name} />
+        {!brokenThumbnail && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            className="h-full w-full object-cover object-top"
+            className={`${loadedThumbnail ? 'opacity-100' : 'opacity-0'} absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-300`}
             src={thumbnailUrl}
             alt={c.name}
             loading="lazy"
@@ -91,13 +102,11 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
             onLoad={() => setLoadedThumbnail(thumbnailUrl)}
             onError={() => setBrokenThumbnail(true)}
           />
-        ) : (
-          <div className="relative flex h-full w-full items-center justify-center rounded-2xl text-3xl text-gray-600 dark:text-gray-300">
-            <ChildIcon child={c} />
-            <span className="absolute right-2 bottom-2 rounded-full bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-900/80 dark:text-gray-300">
-              {c.folder?.childCount}
-            </span>
-          </div>
+        )}
+        {c.folder && (
+          <span className="absolute right-2 bottom-2 rounded-full bg-white/85 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-sm dark:bg-gray-900/85 dark:text-gray-300">
+            {c.folder.childCount}
+          </span>
         )}
       </div>
 
@@ -181,7 +190,7 @@ const FolderGridLayout = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-5 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] sm:gap-4 sm:p-4">
         {folderChildren.map((c: OdFolderChildren) => (
           <div
             key={c.id}

@@ -90,7 +90,7 @@ test('deep directory trees and repeated unusable videos have bounded work', asyn
   assert.equal(thumbnails, 8)
 })
 
-test('hover preview occupies about one fifth of the viewport and stays within every edge', () => {
+test('hover preview uses a square image occupying about one fifth of the viewport and stays within every edge', () => {
   for (const viewport of [
     { width: 1270, height: 1307 },
     { width: 1920, height: 1080 },
@@ -99,10 +99,11 @@ test('hover preview occupies about one fifth of the viewport and stays within ev
     for (const left of [0, viewport.width - 160]) {
       for (const top of [0, viewport.height - 210]) {
         const box = coverPreviewLayout(viewport, { left, top, width: 160, height: 210 })
-        assert.ok(Math.abs((box.width * box.height) / (viewport.width * viewport.height) - 0.2) < 0.01)
-        assert.ok(box.left >= 16 && box.top >= 16)
+        assert.ok(Math.abs((box.imageSize * box.imageSize) / (viewport.width * viewport.height) - 0.2) < 0.01)
+        assert.equal(box.width, box.imageSize + 26)
+        assert.ok(box.left >= 16 && box.top >= 64)
         assert.ok(box.left + box.width <= viewport.width - 16)
-        assert.ok(box.top + box.height <= viewport.height - 16)
+        assert.ok(box.top + box.imageSize + 26 + 136 <= viewport.height - 16)
       }
     }
   }

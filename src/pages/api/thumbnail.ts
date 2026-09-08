@@ -19,7 +19,7 @@ export default async function handler(req: NextRequest): Promise<Response> {
   }
 
   // Get item thumbnails by its path since we will later check if it is protected
-  const { path = '', size = 'medium', odpt = '' } = Object.fromEntries(req.nextUrl.searchParams)
+  const { path = '', size = 'medium', odpt = '', rev = '' } = Object.fromEntries(req.nextUrl.searchParams)
 
   // Check whether the size is valid - must be one of 'large', 'medium', or 'small'
   if (size !== 'large' && size !== 'medium' && size !== 'small') {
@@ -49,7 +49,7 @@ export default async function handler(req: NextRequest): Promise<Response> {
   const requestUrl = `${apiConfig.driveApi}/root${requestPath}`
   // Whether path is root, which requires some special treatment
   const isRoot = requestPath === ''
-  const cacheKey = shouldUseKvCache ? await buildCacheKey('thumbnail', [cleanPath, size]) : ''
+  const cacheKey = shouldUseKvCache ? await buildCacheKey('thumbnail', [cleanPath, size, rev]) : ''
   const cached = shouldUseKvCache ? await getCachedJson<string>(cacheKey) : null
   if (cached?.status === 'HIT') {
     return new Response(null, {

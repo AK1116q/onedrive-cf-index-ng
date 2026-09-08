@@ -17,7 +17,7 @@ export default async function handler(req: NextRequest): Promise<Response> {
     return new Response(JSON.stringify({ error: 'No access token.' }), { status: 403 })
   }
 
-  const { path = '', size = 'large', odpt = '' } = Object.fromEntries(req.nextUrl.searchParams)
+  const { path = '', size = 'large', odpt = '', rev = '' } = Object.fromEntries(req.nextUrl.searchParams)
 
   if (size !== 'large' && size !== 'medium' && size !== 'small') {
     return new Response(JSON.stringify({ error: 'Invalid size.' }), { status: 400 })
@@ -40,7 +40,7 @@ export default async function handler(req: NextRequest): Promise<Response> {
   const shouldUseKvCache = message === ''
   const authScope = getAuthTokenPath(cleanPath)
   const canRead = (itemPath: string) => getAuthTokenPath(itemPath) === authScope
-  const cacheKey = shouldUseKvCache ? await buildCacheKey('folder-cover-v2', [cleanPath, size]) : ''
+  const cacheKey = shouldUseKvCache ? await buildCacheKey('folder-cover-v3', [cleanPath, size, rev]) : ''
   const entry = shouldUseKvCache ? await getCachedJson<{ url: string; path: string }>(cacheKey) : null
   const cached = entry && canRead(entry.value.path) ? entry : null
 
