@@ -11,40 +11,45 @@ import { Checkbox, ChildIcon, ChildName, Downloading } from './FileListing'
 import { getStoredToken } from '../utils/protectedRouteHandler'
 
 const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
-  // We use the generated medium thumbnail for rendering preview images (excluding folders)
+  // Folder covers are inferred from the first video/image inside the folder.
   const hashedToken = getStoredToken(path)
-  const thumbnailUrl =
-    'folder' in c ? null : `/api/thumbnail?path=${path}&size=medium${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const thumbnailUrl = c.folder
+    ? `/api/folder-cover?path=${path}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
+    : `/api/thumbnail?path=${path}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
 
   // Some thumbnails are broken, so we check for onerror event in the image component
   const [brokenThumbnail, setBrokenThumbnail] = useState(false)
 
   return (
-    <div className="space-y-2">
-      <div className="h-32 overflow-hidden rounded border border-gray-900/10 dark:border-gray-500/30">
+    <div className="space-y-3">
+      <div className="aspect-[3/4] overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:shadow-xl dark:border-gray-500/30 dark:bg-gray-800">
         {thumbnailUrl && !brokenThumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            className="h-full w-full object-cover object-top"
+            className="h-full w-full transform-gpu object-cover object-top transition-transform duration-300 ease-out will-change-transform group-hover:scale-110"
             src={thumbnailUrl}
             alt={c.name}
+            loading="lazy"
+            decoding="async"
             onError={() => setBrokenThumbnail(true)}
           />
         ) : (
-          <div className="relative flex h-full w-full items-center justify-center rounded-lg">
+          <div className="relative flex h-full w-full items-center justify-center rounded-2xl text-3xl text-gray-600 dark:text-gray-300">
             <ChildIcon child={c} />
-            <span className="absolute bottom-0 right-0 m-1 font-medium text-gray-700 dark:text-gray-500">
+            <span className="absolute bottom-2 right-2 rounded-full bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-900/80 dark:text-gray-300">
               {c.folder?.childCount}
             </span>
           </div>
         )}
       </div>
 
-      <div className="flex items-start justify-center space-x-2">
+      <div className="flex transform-gpu items-start justify-center space-x-2 px-1 text-center transition-transform duration-300 ease-out will-change-transform group-hover:scale-105">
         <span className="w-5 flex-shrink-0 text-center">
           <ChildIcon child={c} />
         </span>
-        <ChildName name={c.name} folder={Boolean(c.folder)} />
+        <span className="font-medium leading-5">
+          <ChildName name={c.name} folder={Boolean(c.folder)} />
+        </span>
       </div>
       <div className="truncate text-center font-mono text-xs text-gray-700 dark:text-gray-500">
         {formatModifiedDateTime(c.lastModifiedDateTime)}
@@ -110,11 +115,11 @@ const FolderGridLayout = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-5 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {folderChildren.map((c: OdFolderChildren) => (
           <div
             key={c.id}
-            className="group relative overflow-hidden rounded transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850"
+            className="group relative overflow-hidden rounded-2xl p-2 transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-gray-100 dark:hover:bg-gray-850"
           >
             <div className="absolute right-0 top-0 z-10 m-1 rounded bg-white/50 py-0.5 opacity-0 transition-all duration-100 group-hover:opacity-100 dark:bg-gray-900/50">
               {c.folder ? (
