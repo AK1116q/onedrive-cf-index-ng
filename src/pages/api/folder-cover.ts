@@ -1,25 +1,15 @@
 import type { OdFolderChildren, OdThumbnail } from '../../types'
 
 import { posix as pathPosix } from 'path-browserify'
-import axios from 'redaxios'
 
 import apiConfig from '../../../config/api.config'
-import siteConfig from '../../../config/site.config'
-import { checkAuthRoute, encodePath, getAccessToken } from '.'
+import { checkAuthRoute, encodePath, getAccessToken, getAuthTokenPath } from '.'
 import { apiErrorResponse } from '../../utils/apiError'
 import { buildCacheKey, cacheHeaders, getCachedJson, putCachedJson } from '../../utils/cacheStore'
-import { getExtension } from '../../utils/getFileIcon'
+import { findFolderCover } from '../../utils/folderCover'
 import { NextRequest } from 'next/server'
 
 export const runtime = 'edge'
-
-const coverExtensions = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mkv', 'webm', 'mov', 'flv'])
-
-const isCoverCandidate = (item: OdFolderChildren) => {
-  if (item.folder) return false
-  if (item.image || item.video) return true
-  return coverExtensions.has(getExtension(item.name))
-}
 
 export default async function handler(req: NextRequest): Promise<Response> {
   const accessToken = await getAccessToken()
@@ -48,55 +38,71 @@ export default async function handler(req: NextRequest): Promise<Response> {
   }
 
   const shouldUseKvCache = message === ''
-  const cacheKey = shouldUseKvCache ? await buildCacheKey('folder-cover', [cleanPath, size]) : ''
-  const cached = shouldUseKvCache ? await getCachedJson<string>(cacheKey) : null
+  const authScope = getAuthTokenPath(cleanPath)
+  const canRead = (itemPath: string) => getAuthTokenPath(itemPath) === authScope
+  const cacheKey = shouldUseKvCache ? await buildCacheKey('folder-cover-v2', [cleanPath, size]) : ''
+  const entry = shouldUseKvCache ? await getCachedJson<{ url: string; path: string }>(cacheKey) : null
+  const cached = entry && canRead(entry.value.path) ? entry : null
 
   if (cached?.status === 'HIT') {
     return new Response(null, {
       status: 302,
       headers: {
-        Location: cached.value,
+        Location: cached.value.url,
         ...cacheHeaders('HIT'),
       },
     })
   }
 
   try {
-    const requestPath = encodePath(cleanPath)
-    const requestUrl = `${apiConfig.driveApi}/root${requestPath}`
-    const isRoot = requestPath === ''
-    const { data: folderData } = await axios.get(`${requestUrl}${isRoot ? '' : ':'}/children`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      params: {
-        select: 'name,id,folder,file,video,image,lastModifiedDateTime,size',
-        $top: siteConfig.maxItems,
+    const signal = AbortSignal.timeout(15000)
+    const graphGet = async (url: string) => {
+      const target = new URL(url)
+      const drive = new URL(apiConfig.driveApi)
+      if (target.origin !== drive.origin || !target.pathname.startsWith(`${drive.pathname}/`)) {
+        throw new Error('Invalid thumbnail pagination URL.')
+      }
+      const response = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` }, signal })
+      if (!response.ok) throw { response: { status: response.status }, message: 'Cover lookup failed.' }
+      return response.json()
+    }
+    const cover = await findFolderCover(cleanPath, {
+      canRead,
+      list: async (folderPath, next) => {
+        const requestPath = encodePath(folderPath)
+        const url = new URL(`${apiConfig.driveApi}/root${requestPath}${requestPath ? ':' : ''}/children`)
+        url.searchParams.set('$select', 'name,id,folder,file,video,image')
+        url.searchParams.set('$top', '200')
+        const data = await graphGet(next || url.toString())
+        return { value: data.value as OdFolderChildren[], next: data['@odata.nextLink'] }
+      },
+      thumbnail: async id => {
+        try {
+          const data = await graphGet(`${apiConfig.driveApi}/items/${encodeURIComponent(id)}/thumbnails`)
+          return (data.value?.[0] as OdThumbnail | undefined)?.[size]?.url ?? null
+        } catch (error: any) {
+          if (error?.response?.status === 404) return null
+          throw error
+        }
       },
     })
-
-    const coverItem = (folderData.value as OdFolderChildren[]).find(isCoverCandidate)
-    if (!coverItem) {
-      return new Response(JSON.stringify({ error: 'No cover candidate found.' }), { status: 404 })
-    }
-
-    const { data: thumbnailData } = await axios.get(`${apiConfig.driveApi}/items/${coverItem.id}/thumbnails`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-
-    const thumbnailUrl =
-      thumbnailData.value && thumbnailData.value.length > 0 ? (thumbnailData.value[0] as OdThumbnail)[size].url : null
-    if (!thumbnailUrl) {
-      return new Response(JSON.stringify({ error: 'No cover thumbnail found.' }), { status: 404 })
+    if (!cover) {
+      return new Response(JSON.stringify({ error: 'No cover thumbnail found.' }), {
+        status: 404,
+        headers: { 'Cache-Control': 'no-store' },
+      })
     }
 
     if (shouldUseKvCache) {
-      await putCachedJson(cacheKey, thumbnailUrl)
+      await putCachedJson(cacheKey, cover)
     }
 
     return new Response(null, {
       status: 302,
       headers: {
-        Location: thumbnailUrl,
+        Location: cover.url,
         ...cacheHeaders(shouldUseKvCache ? 'MISS' : 'BYPASS'),
+        ...(!shouldUseKvCache ? { 'Cache-Control': 'private, no-store' } : {}),
       },
     })
   } catch (error: any) {
@@ -104,7 +110,7 @@ export default async function handler(req: NextRequest): Promise<Response> {
       return new Response(null, {
         status: 302,
         headers: {
-          Location: cached.value,
+          Location: cached.value.url,
           ...cacheHeaders('STALE', {
             Warning: '110 - "Response served from stale KV cache after OneDrive request failed"',
           }),

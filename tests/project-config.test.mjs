@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
-import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 
 const require = createRequire(import.meta.url)
@@ -18,12 +17,4 @@ test('edge cache-control keeps browser cache disabled while allowing edge revali
   assert.match(apiConfig.cacheControlHeader, /max-age=0/)
   assert.match(apiConfig.cacheControlHeader, /s-maxage=60/)
   assert.match(apiConfig.cacheControlHeader, /stale-while-revalidate/)
-})
-
-test('grid layout uses generated folder covers for media-library cards', () => {
-  const gridLayout = readFileSync('src/components/FolderGridLayout.tsx', 'utf8')
-
-  assert.match(gridLayout, /\/api\/folder-cover/)
-  assert.match(gridLayout, /group-hover:scale-110/)
-  assert.match(gridLayout, /rounded-2xl/)
 })

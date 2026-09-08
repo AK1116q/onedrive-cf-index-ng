@@ -1,60 +1,126 @@
 import type { OdFolderChildren } from '../types'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useClipboard } from 'use-clipboard-copy'
 
 import { getBaseUrl } from '../utils/getBaseUrl'
 import { formatModifiedDateTime } from '../utils/fileDetails'
-import { Checkbox, ChildIcon, ChildName, Downloading } from './FileListing'
+import { Checkbox, ChildIcon, Downloading } from './FileListing'
 import { getStoredToken } from '../utils/protectedRouteHandler'
+import { coverPreviewLayout } from '../utils/coverPreviewLayout'
+import CoverHoverPreview from './CoverHoverPreview'
 
 const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
-  // Folder covers are inferred from the first video/image inside the folder.
   const hashedToken = getStoredToken(path)
-  const thumbnailUrl = c.folder
-    ? `/api/folder-cover?path=${path}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
-    : `/api/thumbnail?path=${path}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const params = new URLSearchParams({ path: decodeURIComponent(path), size: 'large', v: '2' })
+  if (hashedToken) params.set('odpt', hashedToken)
+  const thumbnailUrl = c.folder ? `/api/folder-cover?${params}` : `/api/thumbnail?${params}`
 
   // Some thumbnails are broken, so we check for onerror event in the image component
   const [brokenThumbnail, setBrokenThumbnail] = useState(false)
+  const [loadedThumbnail, setLoadedThumbnail] = useState<string>()
+  const anchor = useRef<HTMLAnchorElement>(null)
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [previewLayout, setPreviewLayout] = useState<ReturnType<typeof coverPreviewLayout> | null>(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
+
+  const closePreview = () => {
+    clearTimeout(timer.current)
+    setPreviewOpen(false)
+    timer.current = setTimeout(() => setPreviewLayout(null), 170)
+  }
+  const openPreview = () => {
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      if (!anchor.current) return
+      setPreviewLayout(
+        coverPreviewLayout(
+          { width: window.innerWidth, height: window.innerHeight },
+          anchor.current.getBoundingClientRect(),
+        ),
+      )
+      setPreviewOpen(true)
+    }, 240)
+  }
+
+  useEffect(() => () => clearTimeout(timer.current), [])
+  useEffect(() => {
+    if (!previewLayout) return
+    const dismiss = () => {
+      clearTimeout(timer.current)
+      setPreviewOpen(false)
+      setPreviewLayout(null)
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') dismiss()
+    }
+    window.addEventListener('scroll', dismiss, true)
+    window.addEventListener('resize', dismiss)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('scroll', dismiss, true)
+      window.removeEventListener('resize', dismiss)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [previewLayout])
 
   return (
-    <div className="space-y-3">
+    <Link
+      href={path}
+      ref={anchor}
+      className="block min-w-0 space-y-3 rounded-2xl focus-visible:outline-2 focus-visible:outline-sky-500"
+      aria-label={c.name}
+      onPointerEnter={openPreview}
+      onPointerLeave={closePreview}
+      onFocus={openPreview}
+      onBlur={closePreview}
+      onClick={closePreview}
+    >
       <div className="aspect-[3/4] overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:shadow-xl dark:border-gray-500/30 dark:bg-gray-800">
         {thumbnailUrl && !brokenThumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            className="h-full w-full transform-gpu object-cover object-top transition-transform duration-300 ease-out will-change-transform group-hover:scale-110"
+            className="h-full w-full object-cover object-top"
             src={thumbnailUrl}
             alt={c.name}
             loading="lazy"
             decoding="async"
+            onLoad={() => setLoadedThumbnail(thumbnailUrl)}
             onError={() => setBrokenThumbnail(true)}
           />
         ) : (
           <div className="relative flex h-full w-full items-center justify-center rounded-2xl text-3xl text-gray-600 dark:text-gray-300">
             <ChildIcon child={c} />
-            <span className="absolute bottom-2 right-2 rounded-full bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-900/80 dark:text-gray-300">
+            <span className="absolute right-2 bottom-2 rounded-full bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-900/80 dark:text-gray-300">
               {c.folder?.childCount}
             </span>
           </div>
         )}
       </div>
 
-      <div className="flex transform-gpu items-start justify-center space-x-2 px-1 text-center transition-transform duration-300 ease-out will-change-transform group-hover:scale-105">
+      <div dir="ltr" className="flex min-w-0 items-start gap-2 px-1 text-left">
         <span className="w-5 flex-shrink-0 text-center">
           <ChildIcon child={c} />
         </span>
-        <span className="font-medium leading-5">
-          <ChildName name={c.name} folder={Boolean(c.folder)} />
+        <span data-cover-title className="block min-w-0 flex-1 truncate leading-5 font-medium">
+          {c.name}
         </span>
       </div>
       <div className="truncate text-center font-mono text-xs text-gray-700 dark:text-gray-500">
         {formatModifiedDateTime(c.lastModifiedDateTime)}
       </div>
-    </div>
+      {previewLayout && (
+        <CoverHoverPreview
+          name={c.name}
+          image={brokenThumbnail ? undefined : loadedThumbnail}
+          layout={previewLayout}
+          open={previewOpen}
+        />
+      )}
+    </Link>
   )
 }
 
@@ -80,7 +146,7 @@ const FolderGridLayout = ({
 
   return (
     <div className="rounded bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100">
-      <div className="flex items-center border-b border-gray-900/10 px-3 text-xs font-bold uppercase tracking-widest text-gray-600 dark:border-gray-500/30 dark:text-gray-400">
+      <div className="flex items-center border-b border-gray-900/10 px-3 text-xs font-bold tracking-widest text-gray-600 uppercase dark:border-gray-500/30 dark:text-gray-400">
         <div className="flex-1">{`${folderChildren.length} 个项目`}</div>
         <div className="flex p-1.5 text-gray-700 dark:text-gray-400">
           <Checkbox
@@ -119,9 +185,9 @@ const FolderGridLayout = ({
         {folderChildren.map((c: OdFolderChildren) => (
           <div
             key={c.id}
-            className="group relative overflow-hidden rounded-2xl p-2 transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-gray-100 dark:hover:bg-gray-850"
+            className="group dark:hover:bg-gray-850 relative min-w-0 rounded-2xl p-2 transition-colors duration-200 hover:bg-gray-100"
           >
-            <div className="absolute right-0 top-0 z-10 m-1 rounded bg-white/50 py-0.5 opacity-0 transition-all duration-100 group-hover:opacity-100 dark:bg-gray-900/50">
+            <div className="absolute top-0 right-0 z-10 m-1 rounded bg-white/50 py-0.5 opacity-0 transition-all duration-100 group-hover:opacity-100 dark:bg-gray-900/50">
               {c.folder ? (
                 <div>
                   <span
@@ -155,7 +221,7 @@ const FolderGridLayout = ({
                       clipboard.copy(
                         `${getBaseUrl()}/api/raw?path=${getItemPath(c.name)}${
                           hashedToken ? `&odpt=${hashedToken}` : ''
-                        }`
+                        }`,
                       )
                       toast.success('已复制文件直链。')
                     }}
@@ -178,7 +244,7 @@ const FolderGridLayout = ({
             <div
               className={`${
                 selected[c.id] ? 'opacity-100' : 'opacity-0'
-              } absolute left-0 top-0 z-10 m-1 rounded bg-white/50 py-0.5 group-hover:opacity-100 dark:bg-gray-900/50`}
+              } absolute top-0 left-0 z-10 m-1 rounded bg-white/50 py-0.5 group-hover:opacity-100 dark:bg-gray-900/50`}
             >
               {!c.folder && !(c.name === '.password') && (
                 <Checkbox
@@ -189,9 +255,7 @@ const FolderGridLayout = ({
               )}
             </div>
 
-            <Link href={getItemPath(c.name)} passHref>
-              <GridItem c={c} path={getItemPath(c.name)} />
-            </Link>
+            <GridItem key={getItemPath(c.name)} c={c} path={getItemPath(c.name)} />
           </div>
         ))}
       </div>
