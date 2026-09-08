@@ -15,7 +15,7 @@ export function DownloadingToast({ router, progress }: { router: NextRouter; pro
   return (
     <div className="flex items-center space-x-2">
       <div className="w-56">
-        <span>{progress ? `Downloading ${progress}%` : 'Downloading selected files...'}</span>
+        <span>{progress ? `正在下载 ${progress}%` : '正在打包下载选中文件...'}</span>
 
         <div className="relative mt-2">
           <div className="flex h-1 overflow-hidden rounded bg-gray-100">
@@ -27,7 +27,7 @@ export function DownloadingToast({ router, progress }: { router: NextRouter; pro
         className="rounded bg-red-500 p-2 text-white hover:bg-red-400 focus:outline-none focus:ring focus:ring-red-300"
         onClick={() => router.reload()}
       >
-        {'Cancel'}
+        {'取消'}
       </button>
     </div>
   )

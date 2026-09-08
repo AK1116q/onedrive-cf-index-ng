@@ -101,7 +101,7 @@ function SearchResultItemTemplate({
         <div className="text-sm font-medium leading-8">{driveItem.name}</div>
         <div
           className={`overflow-hidden truncate font-mono text-xs opacity-60 ${
-            itemDescription === 'Loading ...' && 'animate-pulse'
+            itemDescription === '加载中 ...' && 'animate-pulse'
           }`}
         >
           {itemDescription}
@@ -129,7 +129,7 @@ function SearchResultItemLoadRemote({ result }: { result: OdSearchResult[number]
   }
   if (!data) {
     return (
-      <SearchResultItemTemplate driveItem={result} driveItemPath={''} itemDescription={'Loading ...'} disabled={true} />
+      <SearchResultItemTemplate driveItem={result} driveItemPath={''} itemDescription={'加载中 ...'} disabled={true} />
     )
   }
 
@@ -211,7 +211,7 @@ export default function SearchModal({
                   type="text"
                   id="search-box"
                   className="w-full bg-transparent focus:outline-none focus-visible:outline-none"
-                  placeholder={'Search ...'}
+                  placeholder={'搜索文件或文件夹 ...'}
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                 />
@@ -224,16 +224,16 @@ export default function SearchModal({
                 {results.loading && (
                   <div className="px-4 py-12 text-center text-sm font-medium">
                     <LoadingIcon className="svg-inline--fa mr-2 inline-block h-4 w-4 animate-spin" />
-                    <span>{'Loading ...'}</span>
+                    <span>{'加载中 ...'}</span>
                   </div>
                 )}
                 {results.error && (
-                  <div className="px-4 py-12 text-center text-sm font-medium">{`Error: ${results.error.message}`}</div>
+                  <div className="px-4 py-12 text-center text-sm font-medium">{`搜索失败：${results.error.message}`}</div>
                 )}
                 {results.result && (
                   <>
                     {results.result.length === 0 ? (
-                      <div className="px-4 py-12 text-center text-sm font-medium">{'Nothing here.'}</div>
+                      <div className="px-4 py-12 text-center text-sm font-medium">{'没有找到相关内容。'}</div>
                     ) : (
                       results.result.map(result => <SearchResultItem key={result.id} result={result} />)
                     )}

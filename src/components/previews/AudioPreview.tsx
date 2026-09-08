@@ -88,7 +88,7 @@ const AudioPreview: FC<{ file: OdFileObject }> = ({ file }) => {
             <div>
               <div className="mb-2 font-medium">{file.name}</div>
               <div className="mb-4 text-sm text-gray-500">
-                {'Last modified:' + ' ' + formatModifiedDateTime(file.lastModifiedDateTime)}
+                {'修改时间：' + formatModifiedDateTime(file.lastModifiedDateTime)}
               </div>
             </div>
 

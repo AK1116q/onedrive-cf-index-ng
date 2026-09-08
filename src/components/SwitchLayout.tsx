@@ -10,6 +10,11 @@ export const layouts: Array<{ id: number; name: 'Grid' | 'List'; icon: IconProp 
   { id: 2, name: 'Grid', icon: 'th' },
 ]
 
+const layoutLabelMap = {
+  List: '列表',
+  Grid: '网格',
+}
+
 const SwitchLayout = () => {
   const [preferredLayout, setPreferredLayout] = useLocalStorage('preferredLayout', layouts[0])
 
@@ -19,7 +24,7 @@ const SwitchLayout = () => {
         <Listbox.Button className="relative w-full cursor-pointer rounded pl-4">
           <span className="pointer-events-none flex items-center">
             <FontAwesomeIcon className="mr-2 h-3 w-3" icon={preferredLayout.icon} />
-            <span>{preferredLayout.name}</span>
+            <span>{layoutLabelMap[preferredLayout.name]}</span>
           </span>
           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
             <FontAwesomeIcon className="h-3 w-3" icon="chevron-down" />
@@ -47,7 +52,7 @@ const SwitchLayout = () => {
               >
                 <FontAwesomeIcon className="mr-2 h-3 w-3" icon={layout.icon} />
                 <span className={layout.name === preferredLayout.name ? 'font-medium' : 'font-normal'}>
-                  {layout.name}
+                  {layoutLabelMap[layout.name]}
                 </span>
                 {layout.name === preferredLayout.name && (
                   <span className="absolute inset-y-0 right-3 flex items-center">

@@ -54,16 +54,16 @@ const FolderListLayout = ({
     <div className="rounded bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100">
       <div className="grid grid-cols-12 items-center space-x-2 border-b border-gray-900/10 px-3 dark:border-gray-500/30">
         <div className="col-span-12 py-2 text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:col-span-6">
-          {'Name'}
+          {'名称'}
         </div>
         <div className="col-span-3 hidden text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:block">
-          {'Last Modified'}
+          {'修改时间'}
         </div>
         <div className="hidden text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:block">
-          {'Size'}
+          {'大小'}
         </div>
         <div className="hidden text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:block">
-          {'Actions'}
+          {'操作'}
         </div>
         <div className="hidden text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:block">
           <div className="hidden p-1.5 text-gray-700 dark:text-gray-400 md:flex">
@@ -71,24 +71,24 @@ const FolderListLayout = ({
               checked={totalSelected}
               onChange={toggleTotalSelected}
               indeterminate={true}
-              title={'Select files'}
+              title={'选择文件'}
             />
             <button
-              title={'Copy selected files permalink'}
+              title={'复制选中文件直链'}
               className="cursor-pointer rounded p-1.5 hover:bg-gray-300 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white dark:hover:bg-gray-600 disabled:dark:text-gray-600 disabled:hover:dark:bg-gray-900"
               disabled={totalSelected === 0}
               onClick={() => {
                 clipboard.copy(handleSelectedPermalink(getBaseUrl()))
-                toast.success('Copied selected files permalink.')
+                toast.success('已复制选中文件直链。')
               }}
             >
               <FontAwesomeIcon icon={['far', 'copy']} size="lg" />
             </button>
             {totalGenerating ? (
-              <Downloading title={'Downloading selected files, refresh page to cancel'} style="p-1.5" />
+              <Downloading title={'正在下载选中文件，刷新页面可取消'} style="p-1.5" />
             ) : (
               <button
-                title={'Download selected files'}
+                title={'下载选中文件'}
                 className="cursor-pointer rounded p-1.5 hover:bg-gray-300 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white dark:hover:bg-gray-600 disabled:dark:text-gray-600 disabled:hover:dark:bg-gray-900"
                 disabled={totalSelected === 0}
                 onClick={handleSelectedDownload}
@@ -116,20 +116,20 @@ const FolderListLayout = ({
           {c.folder ? (
             <div className="hidden p-1.5 text-gray-700 dark:text-gray-400 md:flex">
               <span
-                title={'Copy folder permalink'}
+                title={'复制文件夹链接'}
                 className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
                 onClick={() => {
                   clipboard.copy(`${getBaseUrl()}${`${path === '/' ? '' : path}/${encodeURIComponent(c.name)}`}`)
-                  toast('Copied folder permalink.', { icon: '👌' })
+                  toast.success('已复制文件夹链接。')
                 }}
               >
                 <FontAwesomeIcon icon={['far', 'copy']} />
               </span>
               {folderGenerating[c.id] ? (
-                <Downloading title={'Downloading folder, refresh page to cancel'} style="px-1.5 py-1" />
+                <Downloading title={'正在下载文件夹，刷新页面可取消'} style="px-1.5 py-1" />
               ) : (
                 <span
-                  title={'Download folder'}
+                  title={'下载文件夹'}
                   className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
                   onClick={() => {
                     const p = `${path === '/' ? '' : path}/${encodeURIComponent(c.name)}`
@@ -143,19 +143,19 @@ const FolderListLayout = ({
           ) : (
             <div className="hidden p-1.5 text-gray-700 dark:text-gray-400 md:flex">
               <span
-                title={'Copy raw file permalink'}
+                title={'复制文件直链'}
                 className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
                 onClick={() => {
                   clipboard.copy(
                     `${getBaseUrl()}/api/raw?path=${getItemPath(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`
                   )
-                  toast.success('Copied raw file permalink.')
+                  toast.success('已复制文件直链。')
                 }}
               >
                 <FontAwesomeIcon icon={['far', 'copy']} />
               </span>
               <a
-                title={'Download file'}
+                title={'下载文件'}
                 className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
                 href={`/api/raw?path=${getItemPath(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`}
               >
@@ -168,7 +168,7 @@ const FolderListLayout = ({
               <Checkbox
                 checked={selected[c.id] ? 2 : 0}
                 onChange={() => toggleItemSelected(c.id)}
-                title={'Select file'}
+                title={'选择文件'}
               />
             )}
           </div>

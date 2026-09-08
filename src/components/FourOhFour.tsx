@@ -21,40 +21,40 @@ const getErrorDetails = (errorMsg: unknown): ErrorDetails => {
 
   if (lowerMessage.includes('no access token') || lowerMessage.includes('invalid_grant')) {
     return {
-      title: 'OneDrive authorization required',
+      title: '需要重新授权 OneDrive',
       message: rawMessage,
-      action: 'The OneDrive login token is missing or expired. Re-run the OneDrive OAuth setup from the admin page.',
+      action: 'OneDrive 登录凭据缺失或已过期。请从管理页面重新完成 OneDrive 授权。',
     }
   }
 
   if (lowerMessage.includes('password required')) {
     return {
-      title: 'Password required',
+      title: '需要访问密码',
       message: rawMessage,
-      action: 'This folder is protected. Enter the folder password to continue.',
+      action: '这个文件夹已启用密码保护。请输入文件夹密码后继续访问。',
     }
   }
 
   if (lowerMessage.includes('itemnotfound') || lowerMessage.includes('not found') || lowerMessage.includes('404')) {
     return {
-      title: 'File or folder not found',
+      title: '文件或文件夹不存在',
       message: rawMessage,
-      action: 'The file may have been moved, deleted, renamed, or not synced to OneDrive yet.',
+      action: '这个内容可能已被移动、删除、重命名，或者还没有同步到 OneDrive。',
     }
   }
 
   if (lowerMessage.includes('too many requests') || lowerMessage.includes('timeout') || lowerMessage.includes('network')) {
     return {
-      title: 'OneDrive request failed',
+      title: 'OneDrive 请求失败',
       message: rawMessage,
-      action: 'This is usually temporary. Refresh the page, or wait a moment for the cache to recover.',
+      action: '这通常是临时问题。可以刷新页面，或稍等片刻让缓存恢复。',
     }
   }
 
   return {
-    title: 'Something went wrong',
+    title: '出了点问题',
     message: rawMessage,
-    action: 'Refresh the page first. If it keeps failing, check OneDrive authorization, Cloudflare KV, and recent deployment logs.',
+    action: '先刷新页面试试。如果持续失败，请检查 OneDrive 授权、Cloudflare KV 和最近的部署日志。',
   }
 }
 
@@ -75,11 +75,11 @@ const FourOhFour: React.FC<{ errorMsg: unknown }> = ({ errorMsg }) => {
           {errorDetails.message}
         </div>
         <div className="text-sm">
-          Need more details? Press{' '}
+          需要更多细节？按{' '}
           <kbd className="rounded border border-gray-400/20 bg-gray-100 px-1 font-mono text-xs dark:bg-gray-800">
             F12
           </kbd>{' '}
-          and open devtools, or check the GitHub Actions / Cloudflare Pages logs. Upstream issue tracker:{' '}
+          打开开发者工具，或查看 GitHub Actions / Cloudflare Pages 日志。上游问题反馈：{' '}
           <a
             className="text-blue-600 hover:text-blue-700 hover:underline"
             href="https://github.com/lyc8503/onedrive-cf-index-ng/issues"

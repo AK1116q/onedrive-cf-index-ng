@@ -22,7 +22,7 @@ const TextPreview = ({ file }) => {
     return (
       <>
         <PreviewContainer>
-          <Loading loadingText={'Loading file content...'} />
+          <Loading loadingText={'正在加载文件内容...'} />
         </PreviewContainer>
         <DownloadBtnContainer>
           <DownloadButtonGroup />
@@ -35,7 +35,7 @@ const TextPreview = ({ file }) => {
     return (
       <>
         <PreviewContainer>
-          <FourOhFour errorMsg={'File is empty.'} />
+          <FourOhFour errorMsg={'文件内容为空。'} />
         </PreviewContainer>
         <DownloadBtnContainer>
           <DownloadButtonGroup />

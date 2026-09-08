@@ -29,7 +29,7 @@ const CodePreview: FC<{ file: any }> = ({ file }) => {
     return (
       <>
         <PreviewContainer>
-          <Loading loadingText={'Loading file content...'} />
+          <Loading loadingText={'正在加载文件内容...'} />
         </PreviewContainer>
         <DownloadBtnContainer>
           <DownloadButtonGroup />

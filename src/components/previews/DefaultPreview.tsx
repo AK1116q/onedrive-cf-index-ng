@@ -21,22 +21,22 @@ const DefaultPreview: FC<{ file: OdFileObject }> = ({ file }) => {
 
           <div className="flex flex-col space-y-2 py-4 md:flex-1">
             <div>
-              <div className="py-2 text-xs font-medium uppercase opacity-80">{'Last modified'}</div>
+              <div className="py-2 text-xs font-medium uppercase opacity-80">{'修改时间'}</div>
               <div>{formatModifiedDateTime(file.lastModifiedDateTime)}</div>
             </div>
 
             <div>
-              <div className="py-2 text-xs font-medium uppercase opacity-80">{'File size'}</div>
+              <div className="py-2 text-xs font-medium uppercase opacity-80">{'文件大小'}</div>
               <div>{humanFileSize(file.size)}</div>
             </div>
 
             <div>
-              <div className="py-2 text-xs font-medium uppercase opacity-80">{'MIME type'}</div>
-              <div>{file.file?.mimeType ?? 'Unavailable'}</div>
+              <div className="py-2 text-xs font-medium uppercase opacity-80">{'MIME 类型'}</div>
+              <div>{file.file?.mimeType ?? '不可用'}</div>
             </div>
 
             <div>
-              <div className="py-2 text-xs font-medium uppercase opacity-80">{'Hashes'}</div>
+              <div className="py-2 text-xs font-medium uppercase opacity-80">{'文件校验值'}</div>
               <table className="block w-full overflow-scroll whitespace-nowrap text-sm md:table">
                 <tbody>
                   <tr className="border-y bg-white dark:border-gray-700 dark:bg-gray-900">
@@ -44,7 +44,7 @@ const DefaultPreview: FC<{ file: OdFileObject }> = ({ file }) => {
                       Quick XOR
                     </td>
                     <td className="whitespace-nowrap px-3 py-1 font-mono text-gray-500 dark:text-gray-400">
-                      {file.file.hashes?.quickXorHash ?? 'Unavailable'}
+                      {file.file.hashes?.quickXorHash ?? '不可用'}
                     </td>
                   </tr>
                   <tr className="border-y bg-white dark:border-gray-700 dark:bg-gray-900">
@@ -52,7 +52,7 @@ const DefaultPreview: FC<{ file: OdFileObject }> = ({ file }) => {
                       SHA1
                     </td>
                     <td className="whitespace-nowrap px-3 py-1 font-mono text-gray-500 dark:text-gray-400">
-                      {file.file.hashes?.sha1Hash ?? 'Unavailable'}
+                      {file.file.hashes?.sha1Hash ?? '不可用'}
                     </td>
                   </tr>
                   <tr className="border-y bg-white dark:border-gray-700 dark:bg-gray-900">
@@ -60,7 +60,7 @@ const DefaultPreview: FC<{ file: OdFileObject }> = ({ file }) => {
                       SHA256
                     </td>
                     <td className="whitespace-nowrap px-3 py-1 font-mono text-gray-500 dark:text-gray-400">
-                      {file.file.hashes?.sha256Hash ?? 'Unavailable'}
+                      {file.file.hashes?.sha256Hash ?? '不可用'}
                     </td>
                   </tr>
                 </tbody>

@@ -7,7 +7,7 @@ const HomeCrumb = () => {
   return (
     <Link href="/" className="flex items-center">
       <FontAwesomeIcon className="h-3 w-3" icon={['far', 'flag']} />
-      <span className="ml-2 font-medium">{'Home'}</span>
+      <span className="ml-2 font-medium">{'首页'}</span>
     </Link>
   )
 }

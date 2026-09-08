@@ -55,7 +55,7 @@ const EPUBPreview: FC<{ file: OdFileObject }> = ({ file }) => {
             <ReactReader
               url={`/api/raw?path=${asPath}${hashedToken ? '&odpt=' + hashedToken : ''}`}
               getRendition={rendition => fixEpub(rendition)}
-              loadingView={<Loading loadingText={'Loading EPUB ...'} />}
+              loadingView={<Loading loadingText={'正在加载 EPUB ...'} />}
               location={location}
               locationChanged={onLocationChange}
               epubInitOptions={{ openAs: 'epub' }}

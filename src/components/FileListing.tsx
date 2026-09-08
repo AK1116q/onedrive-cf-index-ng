@@ -177,7 +177,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
   if (!data) {
     return (
       <PreviewContainer>
-        <Loading loadingText={'Loading ...'} />
+        <Loading loadingText={'加载中 ...'} />
       </PreviewContainer>
     )
   }
@@ -254,13 +254,13 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
         downloadMultipleFiles({ toastId, router, files, folder })
           .then(() => {
             setTotalGenerating(false)
-            toast.success('Finished downloading selected files.', {
+            toast.success('选中文件已下载完成。', {
               id: toastId,
             })
           })
           .catch(() => {
             setTotalGenerating(false)
-            toast.error('Failed to download selected files.', { id: toastId })
+            toast.error('选中文件下载失败。', { id: toastId })
           })
       }
     }
@@ -281,7 +281,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       const files = (async function* () {
         for await (const { meta: c, path: p, isFolder, error } of traverseFolder(path)) {
           if (error) {
-            toast.error(`Failed to download folder ${p}: ${error.status} ${error.message} Skipped it to continue.`)
+            toast.error(`文件夹 ${p} 下载失败：${error.status} ${error.message}，已跳过并继续。`)
             continue
           }
           const hashedTokenForPath = getStoredToken(p)
@@ -306,11 +306,11 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       })
         .then(() => {
           setFolderGenerating({ ...folderGenerating, [id]: false })
-          toast.success('Finished downloading folder.', { id: toastId })
+          toast.success('文件夹已下载完成。', { id: toastId })
         })
         .catch(() => {
           setFolderGenerating({ ...folderGenerating, [id]: false })
-          toast.error('Failed to download folder.', { id: toastId })
+          toast.error('文件夹下载失败。', { id: toastId })
         })
     }
 
@@ -339,8 +339,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
         {!onlyOnePage && (
           <div className="rounded-b bg-white dark:bg-gray-900 dark:text-gray-100">
             <div className="border-b border-gray-200 p-3 text-center font-mono text-sm text-gray-400 dark:border-gray-700">
-              {`- showing ${size} page(s) ` +
-                (isLoadingMore ? `of ... file(s) -` : `of ${folderChildren.length} file(s) -`)}
+              {`- 正在显示第 ${size} 页，` + (isLoadingMore ? `共 ... 个文件 -` : `共 ${folderChildren.length} 个项目 -`)}
             </div>
             <button
               className={`flex w-full items-center justify-center space-x-2 p-3 disabled:cursor-not-allowed ${
@@ -352,13 +351,13 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
               {isLoadingMore ? (
                 <>
                   <LoadingIcon className="inline-block h-4 w-4 animate-spin" />
-                  <span>{'Loading ...'}</span>{' '}
+                  <span>{'加载中 ...'}</span>{' '}
                 </>
               ) : isReachingEnd ? (
-                <span>{'No more files'}</span>
+                <span>{'没有更多内容了'}</span>
               ) : (
                 <>
-                  <span>{'Load more'}</span>
+                  <span>{'加载更多'}</span>
                   <FontAwesomeIcon icon="chevron-circle-down" />
                 </>
               )}
@@ -421,7 +420,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
   return (
     <PreviewContainer>
-      <FourOhFour errorMsg={`Cannot preview ${path}`} />
+      <FourOhFour errorMsg={`无法预览 ${path}`} />
     </PreviewContainer>
   )
 }

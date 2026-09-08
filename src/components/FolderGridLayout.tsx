@@ -76,30 +76,30 @@ const FolderGridLayout = ({
   return (
     <div className="rounded bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100">
       <div className="flex items-center border-b border-gray-900/10 px-3 text-xs font-bold uppercase tracking-widest text-gray-600 dark:border-gray-500/30 dark:text-gray-400">
-        <div className="flex-1">{`${folderChildren.length} item(s)`}</div>
+        <div className="flex-1">{`${folderChildren.length} 个项目`}</div>
         <div className="flex p-1.5 text-gray-700 dark:text-gray-400">
           <Checkbox
             checked={totalSelected}
             onChange={toggleTotalSelected}
             indeterminate={true}
-            title={'Select all files'}
+            title={'选择全部文件'}
           />
           <button
-            title={'Copy selected files permalink'}
+            title={'复制选中文件直链'}
             className="cursor-pointer rounded p-1.5 hover:bg-gray-300 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white dark:hover:bg-gray-600 disabled:dark:text-gray-600 disabled:hover:dark:bg-gray-900"
             disabled={totalSelected === 0}
             onClick={() => {
               clipboard.copy(handleSelectedPermalink(getBaseUrl()))
-              toast.success('Copied selected files permalink.')
+              toast.success('已复制选中文件直链。')
             }}
           >
             <FontAwesomeIcon icon={['far', 'copy']} size="lg" />
           </button>
           {totalGenerating ? (
-            <Downloading title={'Downloading selected files, refresh page to cancel'} style="p-1.5" />
+            <Downloading title={'正在下载选中文件，刷新页面可取消'} style="p-1.5" />
           ) : (
             <button
-              title={'Download selected files'}
+              title={'下载选中文件'}
               className="cursor-pointer rounded p-1.5 hover:bg-gray-300 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white dark:hover:bg-gray-600 disabled:dark:text-gray-600 disabled:hover:dark:bg-gray-900"
               disabled={totalSelected === 0}
               onClick={handleSelectedDownload}
@@ -120,20 +120,20 @@ const FolderGridLayout = ({
               {c.folder ? (
                 <div>
                   <span
-                    title={'Copy folder permalink'}
+                    title={'复制文件夹链接'}
                     className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
                     onClick={() => {
                       clipboard.copy(`${getBaseUrl()}${getItemPath(c.name)}`)
-                      toast('Copied folder permalink.', { icon: '👌' })
+                      toast.success('已复制文件夹链接。')
                     }}
                   >
                     <FontAwesomeIcon icon={['far', 'copy']} />
                   </span>
                   {folderGenerating[c.id] ? (
-                    <Downloading title={'Downloading folder, refresh page to cancel'} style="px-1.5 py-1" />
+                    <Downloading title={'正在下载文件夹，刷新页面可取消'} style="px-1.5 py-1" />
                   ) : (
                     <span
-                      title={'Download folder'}
+                      title={'下载文件夹'}
                       className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
                       onClick={handleFolderDownload(getItemPath(c.name), c.id, c.name)}
                     >
@@ -144,7 +144,7 @@ const FolderGridLayout = ({
               ) : (
                 <div>
                   <span
-                    title={'Copy raw file permalink'}
+                    title={'复制文件直链'}
                     className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
                     onClick={() => {
                       clipboard.copy(
@@ -152,13 +152,13 @@ const FolderGridLayout = ({
                           hashedToken ? `&odpt=${hashedToken}` : ''
                         }`
                       )
-                      toast.success('Copied raw file permalink.')
+                      toast.success('已复制文件直链。')
                     }}
                   >
                     <FontAwesomeIcon icon={['far', 'copy']} />
                   </span>
                   <a
-                    title={'Download file'}
+                    title={'下载文件'}
                     className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
                     href={`${getBaseUrl()}/api/raw?path=${getItemPath(c.name)}${
                       hashedToken ? `&odpt=${hashedToken}` : ''
@@ -179,7 +179,7 @@ const FolderGridLayout = ({
                 <Checkbox
                   checked={selected[c.id] ? 2 : 0}
                   onChange={() => toggleItemSelected(c.id)}
-                  title={'Select file'}
+                  title={'选择文件'}
                 />
               )}
             </div>

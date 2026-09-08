@@ -24,7 +24,7 @@ import 'plyr-react/plyr.css'
 // Dynamic import to avoid ESM issues in Cloudflare
 const Plyr = dynamic(() => import('plyr-react').then(mod => mod.Plyr), {
   ssr: false,
-  loading: () => <Loading loadingText="Loading video player..." />
+  loading: () => <Loading loadingText="正在加载播放器..." />
 })
 
 const VideoPlayer: FC<{
@@ -111,7 +111,7 @@ const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
         {error ? (
           <FourOhFour errorMsg={error.message} />
         ) : loading && isFlv ? (
-          <Loading loadingText={'Loading FLV extension...'} />
+          <Loading loadingText={'正在加载 FLV 播放组件...'} />
         ) : (
           <VideoPlayer
             videoName={file.name}
@@ -132,21 +132,21 @@ const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
           <DownloadButton
             onClickCallback={() => window.open(videoUrl)}
             btnColor="blue"
-            btnText={'Download'}
+            btnText={'下载'}
             btnIcon="file-download"
           />
           <DownloadButton
             onClickCallback={() => {
               clipboard.copy(`${getBaseUrl()}/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`)
-              toast.success('Copied direct link to clipboard.')
+              toast.success('直链已复制到剪贴板。')
             }}
             btnColor="pink"
-            btnText={'Copy direct link'}
+            btnText={'复制直链'}
             btnIcon="copy"
           />
           <DownloadButton
             onClickCallback={() => window.open(`potplayer://${getBaseUrl()}${videoUrl}`)}
-            btnText="PotPlayer"
+            btnText="PotPlayer 打开"
             btnImage="/players/potplayer.png"
           />
         </div>
