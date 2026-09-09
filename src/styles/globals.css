@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@config "../../tailwind.config.js";
+@import 'tailwindcss';
+@config '../../tailwind.config.js';
 
 @layer utilities {
   /* Chrome, Safari and Opera */
@@ -31,13 +31,7 @@
 }
 pre[class*='language-'],
 code[class*='language-'] {
-  font-family:
-    'SFMono-Regular',
-    Consolas,
-    'Liberation Mono',
-    Menlo,
-    Courier,
-    monospace;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
 }
 
 :root {
@@ -159,6 +153,68 @@ body {
   animation: archive-grid 18s linear infinite;
 }
 
+.archive-background__slash {
+  position: absolute;
+  width: 18vw;
+  min-width: 12rem;
+  height: 145vh;
+  top: -24vh;
+  opacity: 0.2;
+  transform: rotate(24deg);
+  background: linear-gradient(90deg, transparent, rgb(0 174 255 / 0.82), transparent);
+  filter: blur(1px);
+  will-change: transform;
+  animation: archive-slash-drift 11s ease-in-out infinite alternate;
+}
+
+.archive-background__slash--one {
+  left: 8%;
+}
+
+.archive-background__slash--two {
+  right: 4%;
+  opacity: 0.12;
+  animation-delay: -5s;
+  animation-duration: 15s;
+}
+
+.archive-background__dial {
+  position: absolute;
+  top: 8vh;
+  right: 5vw;
+  width: min(34vw, 32rem);
+  aspect-ratio: 1;
+  border: 1px solid rgb(125 211 252 / 0.18);
+  border-radius: 50%;
+  opacity: 0.72;
+  background: repeating-conic-gradient(from 8deg, rgb(125 211 252 / 0.28) 0 1deg, transparent 1deg 9deg);
+  mask: radial-gradient(circle, transparent 0 62%, #000 62.5% 68%, transparent 68.5%);
+  will-change: transform;
+  animation: archive-dial-spin 38s linear infinite;
+}
+
+.archive-background__dial span {
+  position: absolute;
+  inset: 12%;
+  border: 1px solid rgb(56 189 248 / 0.3);
+  border-radius: inherit;
+}
+
+.archive-background__ticker {
+  position: absolute;
+  right: -4rem;
+  bottom: 16vh;
+  color: rgb(125 211 252 / 0.13);
+  font-size: clamp(2rem, 5vw, 5.5rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  transform: rotate(-7deg);
+  will-change: transform;
+  animation: archive-ticker 22s ease-in-out infinite alternate;
+}
+
 .archive-intro {
   position: fixed;
   inset: 0;
@@ -228,46 +284,116 @@ body {
 }
 
 @keyframes archive-float {
-  to { transform: translate3d(-5vw, 5vh, 0) scale(1.12); }
+  to {
+    transform: translate3d(-5vw, 5vh, 0) scale(1.12);
+  }
 }
 
 @keyframes archive-beam {
-  to { transform: translateX(18vw) rotate(24deg); opacity: 0.35; }
+  to {
+    transform: translateX(18vw) rotate(24deg);
+    opacity: 0.35;
+  }
 }
 
 @keyframes archive-grid {
-  to { background-position: 44px 44px; }
+  to {
+    background-position: 44px 44px;
+  }
+}
+
+@keyframes archive-slash-drift {
+  from {
+    transform: translate3d(-8vw, -3vh, 0) rotate(24deg);
+  }
+  to {
+    transform: translate3d(18vw, 5vh, 0) rotate(24deg);
+  }
+}
+
+@keyframes archive-dial-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes archive-ticker {
+  from {
+    transform: translate3d(8vw, 0, 0) rotate(-7deg);
+  }
+  to {
+    transform: translate3d(-12vw, -2vh, 0) rotate(-7deg);
+  }
 }
 
 @keyframes archive-slice {
-  45%, 65% { transform: rotate(-12deg) translateX(0); }
-  100% { transform: rotate(-12deg) translateX(105%); }
+  45%,
+  65% {
+    transform: rotate(-12deg) translateX(0);
+  }
+  100% {
+    transform: rotate(-12deg) translateX(105%);
+  }
 }
 
 @keyframes archive-title-in {
-  from { opacity: 0; transform: translate3d(-3rem, 1rem, 0) skewX(-8deg); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translate3d(-3rem, 1rem, 0) skewX(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @keyframes archive-progress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 @keyframes archive-intro-exit {
-  to { opacity: 0; visibility: hidden; }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 @media (max-width: 640px) {
-  .archive-background__grid { opacity: 0.08; }
-  .archive-background__orb { width: 80vw; }
-  .archive-intro__title { letter-spacing: -0.04em; }
+  .archive-background__grid {
+    opacity: 0.08;
+  }
+  .archive-background__orb {
+    width: 80vw;
+  }
+  .archive-background__dial {
+    width: 75vw;
+    right: -22vw;
+    opacity: 0.42;
+  }
+  .archive-background__ticker {
+    font-size: 2rem;
+    opacity: 0.55;
+  }
+  .archive-background__slash--two {
+    display: none;
+  }
+  .archive-intro__title {
+    letter-spacing: -0.04em;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .archive-background__orb,
   .archive-background__beam,
   .archive-background__grid,
+  .archive-background__slash,
+  .archive-background__dial,
+  .archive-background__ticker,
   .archive-intro,
   .archive-intro__slice,
   .archive-intro__content,

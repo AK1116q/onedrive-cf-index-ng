@@ -24,6 +24,12 @@ export default function CinematicChrome() {
         <div className="archive-background__orb archive-background__orb--two" />
         <div className="archive-background__beam" />
         <div className="archive-background__grid" />
+        <div className="archive-background__slash archive-background__slash--one" />
+        <div className="archive-background__slash archive-background__slash--two" />
+        <div className="archive-background__dial">
+          <span />
+        </div>
+        <div className="archive-background__ticker">ANIME ARCHIVE · ONEDRIVE · MEDIA LIBRARY ·</div>
       </div>
 
       {introVisible && (
@@ -33,7 +39,9 @@ export default function CinematicChrome() {
           <div className="archive-intro__content">
             <div className="archive-intro__eyebrow">ANIME · ARCHIVE</div>
             <div className="archive-intro__title">看番云盘</div>
-            <div className="archive-intro__line"><span /></div>
+            <div className="archive-intro__line">
+              <span />
+            </div>
             <div className="archive-intro__status">CONNECTING TO ONEDRIVE</div>
           </div>
         </div>

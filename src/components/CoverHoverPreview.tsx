@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import Link from 'next/link'
 
 import styles from './CoverHoverPreview.module.css'
 import GeneratedCover from './GeneratedCover'
@@ -47,6 +48,7 @@ export default function CoverHoverPreview({
   folder,
   path,
   revision,
+  href,
   onPointerEnter,
   onPointerLeave,
 }: {
@@ -57,6 +59,7 @@ export default function CoverHoverPreview({
   folder: boolean
   path: string
   revision: string
+  href: string
   onPointerEnter: () => void
   onPointerLeave: () => void
 }) {
@@ -99,7 +102,7 @@ export default function CoverHoverPreview({
 
   return createPortal(
     <div
-      aria-hidden="true"
+      aria-label={`${name} 预览`}
       data-cover-preview
       data-open={entered && open}
       onPointerEnter={onPointerEnter}
@@ -109,10 +112,13 @@ export default function CoverHoverPreview({
     >
       <div className="flex items-stretch gap-3">
         <div style={{ width: layout.imageSize }} className="shrink-0">
-          <div
+          <Link
+            href={href}
+            aria-label={`打开 ${name}`}
+            title={`打开 ${name}`}
             data-cover-preview-image
             style={{ width: layout.imageSize, height: layout.imageSize }}
-            className="overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800"
+            className="group/preview-image relative block overflow-hidden rounded-xl bg-gray-100 ring-sky-400 transition-shadow outline-none hover:ring-2 focus-visible:ring-2 dark:bg-gray-800"
           >
             {image ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -120,7 +126,10 @@ export default function CoverHoverPreview({
             ) : (
               <GeneratedCover name={name} />
             )}
-          </div>
+            <span className="absolute inset-x-0 bottom-0 translate-y-full bg-gray-950/75 px-3 py-2 text-center text-xs font-semibold text-white backdrop-blur-sm transition-transform group-hover/preview-image:translate-y-0 group-focus-visible/preview-image:translate-y-0">
+              点击打开文件夹
+            </span>
+          </Link>
           <div
             dir="ltr"
             title={name}

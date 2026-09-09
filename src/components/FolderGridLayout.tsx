@@ -81,9 +81,9 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   const openPreview = () => {
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     clearTimeout(timer.current)
-    if (c.folder) prefetchFolderTree(path, c.lastModifiedDateTime)
     timer.current = setTimeout(() => {
       if (!anchor.current) return
+      if (c.folder) prefetchFolderTree(path, c.lastModifiedDateTime)
       setPreviewLayout(
         coverPreviewLayout(
           { width: window.innerWidth, height: window.innerHeight },
@@ -92,7 +92,7 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
         ),
       )
       setPreviewOpen(true)
-    }, 240)
+    }, 650)
   }
 
   useEffect(() => () => clearTimeout(timer.current), [])
@@ -178,6 +178,7 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
           folder={Boolean(c.folder)}
           path={path}
           revision={c.lastModifiedDateTime}
+          href={path}
           onPointerEnter={keepPreviewOpen}
           onPointerLeave={closePreview}
         />
