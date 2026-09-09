@@ -20,10 +20,10 @@ const FileListItem: FC<{ fileContent: OdFolderChildren }> = ({ fileContent: c })
         </div>
         <ChildName name={c.name} folder={Boolean(c.folder)} />
       </div>
-      <div className="col-span-3 hidden flex-shrink-0 font-mono text-sm text-gray-700 dark:text-gray-500 md:block">
+      <div className="col-span-3 hidden flex-shrink-0 font-mono text-sm text-gray-700 md:block dark:text-gray-500">
         {formatModifiedDateTime(c.lastModifiedDateTime)}
       </div>
-      <div className="col-span-1 hidden flex-shrink-0 truncate font-mono text-sm text-gray-700 dark:text-gray-500 md:block">
+      <div className="col-span-1 hidden flex-shrink-0 truncate font-mono text-sm text-gray-700 md:block dark:text-gray-500">
         {humanFileSize(c.size)}
       </div>
     </div>
@@ -51,28 +51,23 @@ const FolderListLayout = ({
   const getItemPath = (name: string) => `${path === '/' ? '' : path}/${encodeURIComponent(name)}`
 
   return (
-    <div className="archive-panel rounded shadow-sm dark:text-gray-100">
+    <div className="archive-panel rounded-3xl shadow-sm dark:text-gray-100">
       <div className="grid grid-cols-12 items-center space-x-2 border-b border-gray-900/10 px-3 dark:border-gray-500/30">
-        <div className="col-span-12 py-2 text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:col-span-6">
+        <div className="col-span-12 py-2 text-xs font-bold tracking-widest text-gray-600 uppercase md:col-span-6 dark:text-gray-300">
           {'名称'}
         </div>
-        <div className="col-span-3 hidden text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:block">
+        <div className="col-span-3 hidden text-xs font-bold tracking-widest text-gray-600 uppercase md:block dark:text-gray-300">
           {'修改时间'}
         </div>
-        <div className="hidden text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:block">
+        <div className="hidden text-xs font-bold tracking-widest text-gray-600 uppercase md:block dark:text-gray-300">
           {'大小'}
         </div>
-        <div className="hidden text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:block">
+        <div className="hidden text-xs font-bold tracking-widest text-gray-600 uppercase md:block dark:text-gray-300">
           {'操作'}
         </div>
-        <div className="hidden text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 md:block">
-          <div className="hidden p-1.5 text-gray-700 dark:text-gray-400 md:flex">
-            <Checkbox
-              checked={totalSelected}
-              onChange={toggleTotalSelected}
-              indeterminate={true}
-              title={'选择文件'}
-            />
+        <div className="hidden text-xs font-bold tracking-widest text-gray-600 uppercase md:block dark:text-gray-300">
+          <div className="hidden p-1.5 text-gray-700 md:flex dark:text-gray-400">
+            <Checkbox checked={totalSelected} onChange={toggleTotalSelected} indeterminate={true} title={'选择文件'} />
             <button
               title={'复制选中文件直链'}
               className="cursor-pointer rounded p-1.5 hover:bg-gray-300 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-white dark:hover:bg-gray-600 disabled:dark:text-gray-600 disabled:hover:dark:bg-gray-900"
@@ -102,7 +97,7 @@ const FolderListLayout = ({
 
       {folderChildren.map((c: OdFolderChildren) => (
         <div
-          className="grid grid-cols-12 transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850"
+          className="dark:hover:bg-gray-850 grid grid-cols-12 transition-all duration-100 hover:bg-gray-100"
           key={c.id}
         >
           <Link
@@ -114,7 +109,7 @@ const FolderListLayout = ({
           </Link>
 
           {c.folder ? (
-            <div className="hidden p-1.5 text-gray-700 dark:text-gray-400 md:flex">
+            <div className="hidden p-1.5 text-gray-700 md:flex dark:text-gray-400">
               <span
                 title={'复制文件夹链接'}
                 className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -141,13 +136,13 @@ const FolderListLayout = ({
               )}
             </div>
           ) : (
-            <div className="hidden p-1.5 text-gray-700 dark:text-gray-400 md:flex">
+            <div className="hidden p-1.5 text-gray-700 md:flex dark:text-gray-400">
               <span
                 title={'复制文件直链'}
                 className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
                 onClick={() => {
                   clipboard.copy(
-                    `${getBaseUrl()}/api/raw?path=${getItemPath(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+                    `${getBaseUrl()}/api/raw?path=${getItemPath(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`,
                   )
                   toast.success('已复制文件直链。')
                 }}
@@ -163,13 +158,9 @@ const FolderListLayout = ({
               </a>
             </div>
           )}
-          <div className="hidden p-1.5 text-gray-700 dark:text-gray-400 md:flex">
+          <div className="hidden p-1.5 text-gray-700 md:flex dark:text-gray-400">
             {!c.folder && !(c.name === '.password') && (
-              <Checkbox
-                checked={selected[c.id] ? 2 : 0}
-                onChange={() => toggleItemSelected(c.id)}
-                title={'选择文件'}
-              />
+              <Checkbox checked={selected[c.id] ? 2 : 0} onChange={() => toggleItemSelected(c.id)} title={'选择文件'} />
             )}
           </div>
         </div>

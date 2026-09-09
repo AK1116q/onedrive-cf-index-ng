@@ -208,7 +208,7 @@ const FolderGridLayout = ({
   const getItemPath = (name: string) => `${path === '/' ? '' : path}/${encodeURIComponent(name)}`
 
   return (
-    <div className="archive-panel rounded shadow-sm dark:text-gray-100">
+    <div className="archive-panel rounded-3xl shadow-sm dark:text-gray-100">
       <div className="flex items-center border-b border-gray-900/10 px-3 text-xs font-bold tracking-widest text-gray-600 uppercase dark:border-gray-500/30 dark:text-gray-400">
         <div className="flex-1">{`${folderChildren.length} 个项目`}</div>
         <div className="flex p-1.5 text-gray-700 dark:text-gray-400">
