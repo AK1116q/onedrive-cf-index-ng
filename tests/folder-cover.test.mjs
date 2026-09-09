@@ -13,6 +13,7 @@ const loadTs = async path => {
 }
 const { findFolderCover } = await loadTs('../src/utils/folderCover.ts')
 const { coverPreviewLayout } = await loadTs('../src/utils/coverPreviewLayout.ts')
+const { buildFolderTree, countFolderTree } = await loadTs('../src/utils/folderTree.ts')
 const file = (name, id = name) => ({ name, id })
 const folder = name => ({ ...file(name), folder: {} })
 
@@ -107,4 +108,32 @@ test('hover preview uses a square image occupying about one fifth of the viewpor
       }
     }
   }
+})
+
+test('folder hover tree reads pagination and preserves nested hierarchy', async () => {
+  const tree = await buildFolderTree('/Show', {
+    list: async (path, next) => {
+      if (path === '/Show/Season%201') return { value: [file('10.mkv'), file('2.mkv')] }
+      return next
+        ? { value: [file('.password'), file('special.mkv')] }
+        : { value: [file('trailer.mkv'), folder('Season 1')], next: 'page-2' }
+    },
+  })
+  assert.deepEqual(
+    tree.map(node => node.name),
+    ['Season 1', 'special.mkv', 'trailer.mkv'],
+  )
+  assert.deepEqual(
+    tree[0].children.map(node => node.name),
+    ['2.mkv', '10.mkv'],
+  )
+  assert.deepEqual(countFolderTree(tree), { files: 4, folders: 1 })
+})
+
+test('folder hover preview and file list stay inside the viewport', () => {
+  const viewport = { width: 1270, height: 1307 }
+  const box = coverPreviewLayout(viewport, { left: 1100, top: 1100, width: 160, height: 210 }, true)
+  assert.ok(box.panelWidth >= 180)
+  assert.ok(box.left >= 16 && box.left + box.width <= viewport.width - 16)
+  assert.ok(box.top >= 64 && box.top + box.contentHeight + 26 <= viewport.height - 16)
 })

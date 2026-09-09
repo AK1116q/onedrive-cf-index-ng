@@ -38,8 +38,16 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
 
   const closePreview = () => {
     clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      setPreviewOpen(false)
+      timer.current = setTimeout(() => setPreviewLayout(null), 170)
+    }, 120)
+  }
+  const keepPreviewOpen = () => clearTimeout(timer.current)
+  const dismissPreview = () => {
+    clearTimeout(timer.current)
     setPreviewOpen(false)
-    timer.current = setTimeout(() => setPreviewLayout(null), 170)
+    setPreviewLayout(null)
   }
   const openPreview = () => {
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
@@ -50,6 +58,7 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
         coverPreviewLayout(
           { width: window.innerWidth, height: window.innerHeight },
           anchor.current.getBoundingClientRect(),
+          Boolean(c.folder),
         ),
       )
       setPreviewOpen(true)
@@ -59,77 +68,84 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   useEffect(() => () => clearTimeout(timer.current), [])
   useEffect(() => {
     if (!previewLayout) return
-    const dismiss = () => {
-      clearTimeout(timer.current)
-      setPreviewOpen(false)
-      setPreviewLayout(null)
+    const dismiss = () => dismissPreview()
+    const dismissOnScroll = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest('[data-cover-preview]')) return
+      dismiss()
     }
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') dismiss()
     }
-    window.addEventListener('scroll', dismiss, true)
+    window.addEventListener('scroll', dismissOnScroll, true)
     window.addEventListener('resize', dismiss)
     window.addEventListener('keydown', onKey)
     return () => {
-      window.removeEventListener('scroll', dismiss, true)
+      window.removeEventListener('scroll', dismissOnScroll, true)
       window.removeEventListener('resize', dismiss)
       window.removeEventListener('keydown', onKey)
     }
   }, [previewLayout])
 
   return (
-    <Link
-      href={path}
-      ref={anchor}
-      className="block min-w-0 space-y-3 rounded-2xl focus-visible:outline-2 focus-visible:outline-sky-500"
-      aria-label={c.name}
-      onPointerEnter={openPreview}
-      onPointerLeave={closePreview}
-      onFocus={openPreview}
-      onBlur={closePreview}
-      onClick={closePreview}
-    >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:shadow-xl dark:border-gray-500/30 dark:bg-gray-800">
-        <GeneratedCover name={c.name} />
-        {!brokenThumbnail && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            className={`${loadedThumbnail ? 'opacity-100' : 'opacity-0'} absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-300`}
-            src={thumbnailUrl}
-            alt={c.name}
-            loading="lazy"
-            decoding="async"
-            onLoad={() => setLoadedThumbnail(thumbnailUrl)}
-            onError={() => setBrokenThumbnail(true)}
-          />
-        )}
-        {c.folder && (
-          <span className="absolute right-2 bottom-2 rounded-full bg-white/85 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-sm dark:bg-gray-900/85 dark:text-gray-300">
-            {c.folder.childCount}
-          </span>
-        )}
-      </div>
+    <>
+      <Link
+        href={path}
+        ref={anchor}
+        className="block min-w-0 space-y-3 rounded-2xl focus-visible:outline-2 focus-visible:outline-sky-500"
+        aria-label={c.name}
+        onPointerEnter={openPreview}
+        onPointerLeave={closePreview}
+        onFocus={openPreview}
+        onBlur={closePreview}
+        onClick={dismissPreview}
+      >
+        <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:shadow-xl dark:border-gray-500/30 dark:bg-gray-800">
+          <GeneratedCover name={c.name} />
+          {!brokenThumbnail && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className={`${loadedThumbnail ? 'opacity-100' : 'opacity-0'} absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-300`}
+              src={thumbnailUrl}
+              alt={c.name}
+              loading="lazy"
+              decoding="async"
+              onLoad={() => setLoadedThumbnail(thumbnailUrl)}
+              onError={() => setBrokenThumbnail(true)}
+            />
+          )}
+          {c.folder && (
+            <span className="absolute right-2 bottom-2 rounded-full bg-white/85 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-sm dark:bg-gray-900/85 dark:text-gray-300">
+              {c.folder.childCount}
+            </span>
+          )}
+        </div>
 
-      <div dir="ltr" className="flex min-w-0 items-start gap-2 px-1 text-left">
-        <span className="w-5 flex-shrink-0 text-center">
-          <ChildIcon child={c} />
-        </span>
-        <span data-cover-title className="block min-w-0 flex-1 truncate leading-5 font-medium">
-          {c.name}
-        </span>
-      </div>
-      <div className="truncate text-center font-mono text-xs text-gray-700 dark:text-gray-500">
-        {formatModifiedDateTime(c.lastModifiedDateTime)}
-      </div>
+        <div dir="ltr" className="flex min-w-0 items-start gap-2 px-1 text-left">
+          <span className="w-5 flex-shrink-0 text-center">
+            <ChildIcon child={c} />
+          </span>
+          <span data-cover-title className="block min-w-0 flex-1 truncate leading-5 font-medium">
+            {c.name}
+          </span>
+        </div>
+        <div className="truncate text-center font-mono text-xs text-gray-700 dark:text-gray-500">
+          {formatModifiedDateTime(c.lastModifiedDateTime)}
+        </div>
+      </Link>
       {previewLayout && (
         <CoverHoverPreview
           name={c.name}
           image={brokenThumbnail ? undefined : loadedThumbnail}
           layout={previewLayout}
           open={previewOpen}
+          folder={Boolean(c.folder)}
+          path={path}
+          revision={c.lastModifiedDateTime}
+          onPointerEnter={keepPreviewOpen}
+          onPointerLeave={closePreview}
         />
       )}
-    </Link>
+    </>
   )
 }
 
