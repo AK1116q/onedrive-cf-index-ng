@@ -13,6 +13,7 @@ import { coverPreviewLayout } from '../utils/coverPreviewLayout'
 import CoverHoverPreview from './CoverHoverPreview'
 import GeneratedCover from './GeneratedCover'
 import { prefetchFolderTree } from '../utils/loadFolderTree'
+import { loadBangumiCover } from '../utils/bangumiCover'
 
 const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   const hashedToken = getStoredToken(path)
@@ -27,15 +28,42 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   // Some thumbnails are broken, so we check for onerror event in the image component
   const [brokenThumbnail, setBrokenThumbnail] = useState(false)
   const [loadedThumbnail, setLoadedThumbnail] = useState<string>()
+  const [officialCover, setOfficialCover] = useState<string>()
+  const [officialResolved, setOfficialResolved] = useState(!c.folder)
+  const [officialFailed, setOfficialFailed] = useState(false)
   const anchor = useRef<HTMLAnchorElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [previewLayout, setPreviewLayout] = useState<ReturnType<typeof coverPreviewLayout> | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
 
+  const imageUrl = c.folder
+    ? officialCover && !officialFailed
+      ? officialCover
+      : officialResolved
+        ? thumbnailUrl
+        : undefined
+    : thumbnailUrl
+
+  useEffect(() => {
+    if (!c.folder) return
+    let current = true
+    setOfficialCover(undefined)
+    setOfficialResolved(false)
+    setOfficialFailed(false)
+    loadBangumiCover(c.name).then(result => {
+      if (!current) return
+      setOfficialCover(result.url ?? undefined)
+      setOfficialResolved(true)
+    })
+    return () => {
+      current = false
+    }
+  }, [c.folder, c.name])
+
   useEffect(() => {
     setBrokenThumbnail(false)
     setLoadedThumbnail(undefined)
-  }, [thumbnailUrl])
+  }, [imageUrl])
 
   const closePreview = () => {
     clearTimeout(timer.current)
@@ -103,16 +131,23 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
       >
         <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:shadow-xl dark:border-gray-500/30 dark:bg-gray-800">
           <GeneratedCover name={c.name} />
-          {!brokenThumbnail && (
+          {imageUrl && !brokenThumbnail && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               className={`${loadedThumbnail ? 'opacity-100' : 'opacity-0'} absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-300`}
-              src={thumbnailUrl}
+              src={imageUrl}
               alt={c.name}
+              title={imageUrl === officialCover ? '官方封面来源：Bangumi' : undefined}
               loading="lazy"
               decoding="async"
-              onLoad={() => setLoadedThumbnail(thumbnailUrl)}
-              onError={() => setBrokenThumbnail(true)}
+              onLoad={() => setLoadedThumbnail(imageUrl)}
+              onError={() => {
+                if (imageUrl === officialCover) {
+                  setOfficialFailed(true)
+                  return
+                }
+                setBrokenThumbnail(true)
+              }}
             />
           )}
           {c.folder && (

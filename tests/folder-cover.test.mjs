@@ -14,6 +14,7 @@ const loadTs = async path => {
 const { findFolderCover } = await loadTs('../src/utils/folderCover.ts')
 const { coverPreviewLayout } = await loadTs('../src/utils/coverPreviewLayout.ts')
 const { buildFolderTree, countFolderTree } = await loadTs('../src/utils/folderTree.ts')
+const { cleanAnimeTitle, pickBangumiSubject } = await loadTs('../src/utils/animeTitle.ts')
 const file = (name, id = name) => ({ name, id })
 const folder = name => ({ ...file(name), folder: {} })
 
@@ -38,6 +39,24 @@ test('prefers an explicit poster over generic images and episode frames', async 
     thumbnail: async id => `https://example.test/${id}`,
   })
   assert.equal(result.path, '/Show/poster.png')
+})
+
+test('cleans release metadata from anime folder names for Bangumi search', () => {
+  assert.equal(cleanAnimeTitle('[VCB-Studio] Mobile Suit Gundam 00 [Ma10p_1080p]'), 'Mobile Suit Gundam 00')
+  assert.equal(
+    cleanAnimeTitle('[DBD-Raws][机动战士高达0079][01-43TV全集+SP+特典映像][1080P][BDRip][HEVC-10bit]'),
+    '机动战士高达0079',
+  )
+  assert.equal(cleanAnimeTitle('[Kirara Fantasia] 妙翻天 S01E08.mkv'), '妙翻天')
+})
+
+test('prefers an exact Chinese Bangumi title match', () => {
+  const subject = pickBangumiSubject('机动战士高达00', [
+    { id: 2, name: '機動戦士ガンダム00 セカンドシーズン', name_cn: '机动战士高达00 第二季' },
+    { id: 1, name: '機動戦士ガンダム00', name_cn: '机动战士高达00' },
+  ])
+  assert.equal(subject?.id, 1)
+  assert.equal(pickBangumiSubject('福利', [{ id: 3, name: 'Something else' }]), null)
 })
 
 test('follows pagination without traversing protected folders or files', async () => {
