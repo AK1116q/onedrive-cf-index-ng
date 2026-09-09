@@ -57,6 +57,8 @@ test('prefers an exact Chinese Bangumi title match', () => {
   ])
   assert.equal(subject?.id, 1)
   assert.equal(pickBangumiSubject('福利', [{ id: 3, name: 'Something else' }]), null)
+  assert.equal(pickBangumiSubject('妙翻天', [{ id: 4, name: '笑ゥせぇるすまん', name_cn: '笑面推销员' }]), null)
+  assert.equal(pickBangumiSubject('Mobile Suit Gundam 00', [{ id: 1, name: '機動戦士ガンダム00' }])?.id, 1)
 })
 
 test('follows pagination without traversing protected folders or files', async () => {

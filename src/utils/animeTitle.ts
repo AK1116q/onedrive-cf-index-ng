@@ -50,5 +50,8 @@ export function pickBangumiSubject(query: string, subjects: BangumiSubject[]) {
     return { subject, score }
   })
 
-  return scored.sort((a, b) => b.score - a.score)[0]?.subject ?? null
+  const best = scored.sort((a, b) => b.score - a.score)[0]
+  if (!best) return null
+  if (best.score >= 70) return best.subject
+  return /[a-z]/i.test(query) && normalizedQuery.length >= 6 ? subjects[0] ?? null : null
 }

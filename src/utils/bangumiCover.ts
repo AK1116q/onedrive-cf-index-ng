@@ -18,7 +18,7 @@ const withSlot = async <T>(task: () => Promise<T>) => {
   }
 }
 
-const cacheKey = (name: string) => `bangumi-cover:v1:${cleanAnimeTitle(name)}`
+const cacheKey = (name: string) => `bangumi-cover:v2:${cleanAnimeTitle(name)}`
 
 const readCache = (key: string): CoverResult | null => {
   try {
@@ -48,7 +48,7 @@ export function loadBangumiCover(name: string) {
   if (existing) return existing
 
   const request = withSlot(async () => {
-    const response = await fetch(`/api/bangumi-cover?${new URLSearchParams({ name })}`)
+    const response = await fetch(`/api/bangumi-cover?${new URLSearchParams({ name, matcher: '2' })}`)
     if (!response.ok) return { url: null, source: 'none' } as CoverResult
     const data = (await response.json()) as { cover?: string | null }
     return { url: data.cover ?? null, source: data.cover ? 'bangumi' : 'none' } as CoverResult
