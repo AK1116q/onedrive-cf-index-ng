@@ -30,8 +30,10 @@ export default function CinematicChrome() {
           <span />
         </div>
         <div className="archive-background__ticker">ANIME ARCHIVE · ONEDRIVE · MEDIA LIBRARY ·</div>
-        <div className="archive-background__catmark">
-          <span />
+        <div className="archive-background__character">
+          {/* Decorative user-provided artwork; keep it out of the accessibility tree. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/catgirl-background.jpg" alt="" decoding="async" fetchPriority="high" />
         </div>
       </div>
 

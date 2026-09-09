@@ -19,7 +19,7 @@ export default function Folders() {
 
       <main className="site-main flex w-full flex-1 flex-col">
         <Navbar />
-        <div className="mx-auto w-full max-w-[92rem] py-4 sm:p-4">
+        <div className="archive-content mx-auto w-full max-w-[92rem] py-4 sm:p-4">
           <nav className="mb-4 flex items-center justify-between space-x-3 px-4 sm:px-0 sm:pl-1">
             <Breadcrumb query={query} />
             <SwitchLayout />
