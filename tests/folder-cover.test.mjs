@@ -16,12 +16,20 @@ const { coverPreviewLayout } = await loadTs('../src/utils/coverPreviewLayout.ts'
 const { buildFolderTree, countFolderTree } = await loadTs('../src/utils/folderTree.ts')
 const { cleanAnimeTitle, pickBangumiSubject } = await loadTs('../src/utils/animeTitle.ts')
 const { shouldLoadFolderImage } = await loadTs('../src/utils/folderCoverPolicy.ts')
+const { getEpisodeLabel } = await loadTs('../src/utils/episodeLabel.ts')
 
 test('only root-level folders load remote cover images', () => {
   assert.equal(shouldLoadFolderImage('/', true), true)
   assert.equal(shouldLoadFolderImage('/Anime', true), false)
   assert.equal(shouldLoadFolderImage('/Anime/Season%201', true), false)
   assert.equal(shouldLoadFolderImage('/', false), false)
+})
+
+test('extracts readable episode labels from common anime filenames', () => {
+  assert.equal(getEpisodeLabel('[Nix-Raws] Show - S01E03.mkv'), 'S1 · 第 03 集')
+  assert.equal(getEpisodeLabel('Show EP12 1080p.mkv'), '第 12 集')
+  assert.equal(getEpisodeLabel('Show 第7话.mkv'), '第 07 集')
+  assert.equal(getEpisodeLabel('NCOP.mkv'), null)
 })
 const file = (name, id = name) => ({ name, id })
 const folder = name => ({ ...file(name), folder: {} })

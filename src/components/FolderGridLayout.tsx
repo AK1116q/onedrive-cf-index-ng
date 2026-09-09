@@ -15,9 +15,11 @@ import GeneratedCover from './GeneratedCover'
 import { prefetchFolderTree } from '../utils/loadFolderTree'
 import { loadBangumiCover } from '../utils/bangumiCover'
 import { shouldLoadFolderImage } from '../utils/folderCoverPolicy'
+import { getEpisodeLabel } from '../utils/episodeLabel'
 
 const GridItem = ({ c, path, parentPath }: { c: OdFolderChildren; path: string; parentPath: string }) => {
   const loadFolderImage = shouldLoadFolderImage(parentPath, Boolean(c.folder))
+  const episodeLabel = c.file ? getEpisodeLabel(c.name) : null
   const hashedToken = getStoredToken(path)
   const params = new URLSearchParams({
     path: decodeURIComponent(path),
@@ -160,6 +162,11 @@ const GridItem = ({ c, path, parentPath }: { c: OdFolderChildren; path: string; 
           {c.folder && (
             <span className="absolute right-2 bottom-2 rounded-full bg-white/85 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-sm dark:bg-gray-900/85 dark:text-gray-300">
               {c.folder.childCount}
+            </span>
+          )}
+          {episodeLabel && (
+            <span className="absolute bottom-2 left-2 z-[5] rounded-full border border-white/35 bg-pink-600/90 px-2.5 py-1 text-xs font-black tracking-wide text-white shadow-lg backdrop-blur-md">
+              {episodeLabel}
             </span>
           )}
         </div>
