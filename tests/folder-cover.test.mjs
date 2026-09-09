@@ -15,6 +15,14 @@ const { findFolderCover } = await loadTs('../src/utils/folderCover.ts')
 const { coverPreviewLayout } = await loadTs('../src/utils/coverPreviewLayout.ts')
 const { buildFolderTree, countFolderTree } = await loadTs('../src/utils/folderTree.ts')
 const { cleanAnimeTitle, pickBangumiSubject } = await loadTs('../src/utils/animeTitle.ts')
+const { shouldLoadFolderImage } = await loadTs('../src/utils/folderCoverPolicy.ts')
+
+test('only root-level folders load remote cover images', () => {
+  assert.equal(shouldLoadFolderImage('/', true), true)
+  assert.equal(shouldLoadFolderImage('/Anime', true), false)
+  assert.equal(shouldLoadFolderImage('/Anime/Season%201', true), false)
+  assert.equal(shouldLoadFolderImage('/', false), false)
+})
 const file = (name, id = name) => ({ name, id })
 const folder = name => ({ ...file(name), folder: {} })
 

@@ -14,8 +14,10 @@ import CoverHoverPreview from './CoverHoverPreview'
 import GeneratedCover from './GeneratedCover'
 import { prefetchFolderTree } from '../utils/loadFolderTree'
 import { loadBangumiCover } from '../utils/bangumiCover'
+import { shouldLoadFolderImage } from '../utils/folderCoverPolicy'
 
-const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
+const GridItem = ({ c, path, parentPath }: { c: OdFolderChildren; path: string; parentPath: string }) => {
+  const loadFolderImage = shouldLoadFolderImage(parentPath, Boolean(c.folder))
   const hashedToken = getStoredToken(path)
   const params = new URLSearchParams({
     path: decodeURIComponent(path),
@@ -29,7 +31,7 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   const [brokenThumbnail, setBrokenThumbnail] = useState(false)
   const [loadedThumbnail, setLoadedThumbnail] = useState<string>()
   const [officialCover, setOfficialCover] = useState<string>()
-  const [officialResolved, setOfficialResolved] = useState(!c.folder)
+  const [officialResolved, setOfficialResolved] = useState(!loadFolderImage)
   const [officialFailed, setOfficialFailed] = useState(false)
   const anchor = useRef<HTMLAnchorElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -37,19 +39,24 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   const [previewOpen, setPreviewOpen] = useState(false)
 
   const imageUrl = c.folder
-    ? officialCover && !officialFailed
-      ? officialCover
-      : officialResolved
-        ? thumbnailUrl
-        : undefined
+    ? loadFolderImage
+      ? officialCover && !officialFailed
+        ? officialCover
+        : officialResolved
+          ? thumbnailUrl
+          : undefined
+      : undefined
     : thumbnailUrl
 
   useEffect(() => {
-    if (!c.folder) return
-    let current = true
     setOfficialCover(undefined)
-    setOfficialResolved(false)
     setOfficialFailed(false)
+    if (!loadFolderImage) {
+      setOfficialResolved(true)
+      return
+    }
+    let current = true
+    setOfficialResolved(false)
     loadBangumiCover(c.name).then(result => {
       if (!current) return
       setOfficialCover(result.url ?? undefined)
@@ -58,7 +65,7 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
     return () => {
       current = false
     }
-  }, [c.folder, c.name])
+  }, [c.name, loadFolderImage])
 
   useEffect(() => {
     setBrokenThumbnail(false)
@@ -318,7 +325,7 @@ const FolderGridLayout = ({
               )}
             </div>
 
-            <GridItem key={getItemPath(c.name)} c={c} path={getItemPath(c.name)} />
+            <GridItem key={getItemPath(c.name)} c={c} path={getItemPath(c.name)} parentPath={path} />
           </div>
         ))}
       </div>
