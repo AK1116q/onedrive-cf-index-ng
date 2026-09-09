@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const INTRO_KEY = 'archive-intro-seen-v1'
+const INTRO_KEY = 'archive-intro-seen-v2'
 
 export default function CinematicChrome() {
   const [introVisible, setIntroVisible] = useState(true)
@@ -30,6 +30,9 @@ export default function CinematicChrome() {
           <span />
         </div>
         <div className="archive-background__ticker">ANIME ARCHIVE · ONEDRIVE · MEDIA LIBRARY ·</div>
+        <div className="archive-background__catmark">
+          <span />
+        </div>
       </div>
 
       {introVisible && (
@@ -37,12 +40,12 @@ export default function CinematicChrome() {
           <div className="archive-intro__slice archive-intro__slice--one" />
           <div className="archive-intro__slice archive-intro__slice--two" />
           <div className="archive-intro__content">
-            <div className="archive-intro__eyebrow">ANIME · ARCHIVE</div>
+            <div className="archive-intro__eyebrow">NEKOMIMI · ARCHIVE</div>
             <div className="archive-intro__title">看番云盘</div>
             <div className="archive-intro__line">
               <span />
             </div>
-            <div className="archive-intro__status">CONNECTING TO ONEDRIVE</div>
+            <div className="archive-intro__status">WELCOME HOME · CONNECTING</div>
           </div>
         </div>
       )}
