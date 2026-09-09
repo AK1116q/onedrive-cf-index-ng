@@ -42,7 +42,7 @@ test('prefers an explicit poster over generic images and episode frames', async 
 })
 
 test('cleans release metadata from anime folder names for Bangumi search', () => {
-  assert.equal(cleanAnimeTitle('[VCB-Studio] Mobile Suit Gundam 00 [Ma10p_1080p]'), 'Mobile Suit Gundam 00')
+  assert.equal(cleanAnimeTitle('[VCB-Studio] Mobile Suit Gundam 00 [Ma10p_1080p]'), '机动战士高达00')
   assert.equal(
     cleanAnimeTitle('[DBD-Raws][机动战士高达0079][01-43TV全集+SP+特典映像][1080P][BDRip][HEVC-10bit]'),
     '机动战士高达0079',

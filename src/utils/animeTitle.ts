@@ -1,6 +1,8 @@
 const technicalName =
   /raws?|studio|bdrip|bluray|web-?dl|webrip|hevc|avc|x26[45]|10bit|flac|aac|mkv|mp4|1080p?|2160p?|ma10p|字幕|简繁|外挂|全集|特典|映像|字幕组/i
 
+const knownAliases = new Map([['mobile suit gundam 00', '机动战士高达00']])
+
 const cleanCandidate = (value: string) =>
   value
     .normalize('NFKC')
@@ -15,7 +17,7 @@ const cleanCandidate = (value: string) =>
 export function cleanAnimeTitle(folderName: string) {
   const bracketed = Array.from(folderName.matchAll(/[\[【](.*?)[\]】]/g), match => cleanCandidate(match[1]))
   const plain = cleanCandidate(folderName.replace(/[\[【].*?[\]】]/g, ' '))
-  if (plain.length >= 2 && !technicalName.test(plain)) return plain
+  if (plain.length >= 2 && !technicalName.test(plain)) return knownAliases.get(plain.toLocaleLowerCase()) ?? plain
   const candidates = bracketed.filter(value => value.length >= 2 && !technicalName.test(value))
   return candidates.sort((a, b) => b.length - a.length)[0] || plain || cleanCandidate(folderName)
 }
