@@ -60,6 +60,7 @@ import * as Icons from '@fortawesome/free-brands-svg-icons'
 
 import type { AppProps } from 'next/app'
 import NextNProgress from 'nextjs-progressbar'
+import CinematicChrome from '../components/CinematicChrome'
 
 // import all brand icons with tree-shaking so all icons can be referenced in the app
 const iconList = Object.keys(Icons)
@@ -119,6 +120,7 @@ library.add(
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
+      <CinematicChrome />
       <NextNProgress height={1} color="rgb(156, 163, 175, 0.9)" options={{ showSpinner: false }} />
       <Component {...pageProps} />
     </>
