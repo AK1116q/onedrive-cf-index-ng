@@ -12,6 +12,7 @@ import { getStoredToken } from '../utils/protectedRouteHandler'
 import { coverPreviewLayout } from '../utils/coverPreviewLayout'
 import CoverHoverPreview from './CoverHoverPreview'
 import GeneratedCover from './GeneratedCover'
+import { prefetchFolderTree } from '../utils/loadFolderTree'
 
 const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   const hashedToken = getStoredToken(path)
@@ -52,6 +53,7 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   const openPreview = () => {
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     clearTimeout(timer.current)
+    if (c.folder) prefetchFolderTree(path, c.lastModifiedDateTime)
     timer.current = setTimeout(() => {
       if (!anchor.current) return
       setPreviewLayout(

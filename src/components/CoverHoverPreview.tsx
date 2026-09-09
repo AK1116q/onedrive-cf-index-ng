@@ -8,7 +8,7 @@ import GeneratedCover from './GeneratedCover'
 import type { coverPreviewLayout } from '../utils/coverPreviewLayout'
 import type { FolderTreeNode } from '../utils/folderTree'
 import { countFolderTree } from '../utils/folderTree'
-import { loadFolderTree } from '../utils/loadFolderTree'
+import { loadFolderTree, stopWatchingFolderTree } from '../utils/loadFolderTree'
 import { getFileIcon } from '../utils/getFileIcon'
 
 const TreeRows = ({ nodes }: { nodes: FolderTreeNode[] }) => (
@@ -63,6 +63,7 @@ export default function CoverHoverPreview({
   const [entered, setEntered] = useState(false)
   const [tree, setTree] = useState<FolderTreeNode[]>()
   const [treeError, setTreeError] = useState('')
+  const [treeComplete, setTreeComplete] = useState(false)
 
   useEffect(() => {
     let second = 0
@@ -78,12 +79,19 @@ export default function CoverHoverPreview({
   useEffect(() => {
     if (!folder || !open) return
     let current = true
+    const updateTree = (value: FolderTreeNode[]) => current && setTree([...value])
     setTreeError('')
-    loadFolderTree(path, revision)
-      .then(value => current && setTree(value))
+    setTreeComplete(false)
+    loadFolderTree(path, revision, updateTree)
+      .then(value => {
+        if (!current) return
+        setTree(value)
+        setTreeComplete(true)
+      })
       .catch(error => current && setTreeError(error instanceof Error ? error.message : '目录读取失败。'))
     return () => {
       current = false
+      stopWatchingFolderTree(path, revision, updateTree)
     }
   }, [folder, open, path, revision])
 
@@ -130,7 +138,9 @@ export default function CoverHoverPreview({
             <div className="shrink-0 border-b border-gray-200 px-3 py-2.5 dark:border-gray-700">
               <div className="text-sm font-semibold">目录内容</div>
               <div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                {counts ? `${counts.files} 个文件 · ${counts.folders} 个子文件夹` : '正在读取全部文件...'}
+                {counts
+                  ? `${counts.files} 个文件 · ${counts.folders} 个子文件夹${treeComplete ? '' : ' · 正在补全'}`
+                  : '正在读取目录...'}
               </div>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-2">

@@ -27,8 +27,15 @@ const compareItems = (a: FolderTreeItem, b: FolderTreeItem) => {
   return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
 }
 
-export async function buildFolderTree(rootPath: string, source: FolderTreeSource): Promise<FolderTreeNode[]> {
-  const loadFolder = async (folderPath: string): Promise<FolderTreeNode[]> => {
+export async function buildFolderTree(
+  rootPath: string,
+  source: FolderTreeSource,
+  onProgress?: (nodes: FolderTreeNode[]) => void,
+): Promise<FolderTreeNode[]> {
+  let root: FolderTreeNode[] = []
+  const publish = () => onProgress?.([...root])
+
+  const readFolder = async (folderPath: string): Promise<FolderTreeNode[]> => {
     const items: FolderTreeItem[] = []
     const visitedPages = new Set<string>()
     let next: string | undefined
@@ -40,32 +47,39 @@ export async function buildFolderTree(rootPath: string, source: FolderTreeSource
       next = page.next
     } while (next)
 
-    return Promise.all(
-      items.sort(compareItems).map(async item => {
+    return items.sort(compareItems).map(item => {
         const path = `${folderPath === '/' ? '' : folderPath}/${encodeURIComponent(item.name)}`
         const isFolder = Boolean(item.folder)
-        let children: FolderTreeNode[] = []
-        let error: string | undefined
-        if (isFolder) {
-          try {
-            children = await loadFolder(path)
-          } catch (reason) {
-            error = reason instanceof Error ? reason.message : '目录读取失败。'
-          }
-        }
         return {
           id: item.id,
           name: item.name,
           path,
           isFolder,
-          children,
-          error,
+          children: [],
+        }
+      })
+  }
+
+  const populateFolders = async (nodes: FolderTreeNode[]) => {
+    await Promise.all(
+      nodes.map(async node => {
+        if (!node.isFolder) return
+        try {
+          node.children = await readFolder(node.path)
+          publish()
+          await populateFolders(node.children)
+        } catch (reason) {
+          node.error = reason instanceof Error ? reason.message : '目录读取失败。'
+          publish()
         }
       }),
     )
   }
 
-  return loadFolder(rootPath)
+  root = await readFolder(rootPath)
+  publish()
+  await populateFolders(root)
+  return root
 }
 
 export function countFolderTree(nodes: FolderTreeNode[]) {

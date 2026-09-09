@@ -130,6 +130,37 @@ test('folder hover tree reads pagination and preserves nested hierarchy', async 
   assert.deepEqual(countFolderTree(tree), { files: 4, folders: 1 })
 })
 
+test('folder hover tree publishes the root before nested folders finish', async () => {
+  let releaseNested
+  const nestedReady = new Promise(resolve => {
+    releaseNested = resolve
+  })
+  const updates = []
+  const result = buildFolderTree(
+    '/Show',
+    {
+      list: async path => {
+        if (path === '/Show/Season%201') {
+          await nestedReady
+          return { value: [file('episode.mkv')] }
+        }
+        return { value: [folder('Season 1'), file('trailer.mkv')] }
+      },
+    },
+    nodes => updates.push(nodes.map(node => ({ name: node.name, children: node.children.length }))),
+  )
+
+  await Promise.resolve()
+  await Promise.resolve()
+  assert.deepEqual(updates[0], [
+    { name: 'Season 1', children: 0 },
+    { name: 'trailer.mkv', children: 0 },
+  ])
+  releaseNested()
+  await result
+  assert.equal(updates.at(-1)[0].children, 1)
+})
+
 test('folder hover preview and file list stay inside the viewport', () => {
   const viewport = { width: 1270, height: 1307 }
   const box = coverPreviewLayout(viewport, { left: 1100, top: 1100, width: 160, height: 210 }, true)
