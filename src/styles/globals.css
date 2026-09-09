@@ -68,10 +68,10 @@ body {
 
 @media (min-width: 1100px) {
   .archive-content {
-    width: 66%;
+    width: 71%;
     max-width: none;
     margin-right: 1.5rem;
-    margin-left: 34%;
+    margin-left: 29%;
   }
 }
 
@@ -235,7 +235,7 @@ body {
   position: absolute;
   left: clamp(1rem, 3vw, 4rem);
   bottom: 2vh;
-  width: min(34vw, 34rem);
+  width: min(36vw, 36rem);
   height: calc(100vh - 5rem);
   opacity: 0.7;
   will-change: transform;
