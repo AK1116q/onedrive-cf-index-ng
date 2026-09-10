@@ -17,6 +17,7 @@ const { buildFolderTree, countFolderTree } = await loadTs('../src/utils/folderTr
 const { cleanAnimeTitle, pickBangumiSubject } = await loadTs('../src/utils/animeTitle.ts')
 const { shouldLoadFolderImage } = await loadTs('../src/utils/folderCoverPolicy.ts')
 const { getEpisodeLabel } = await loadTs('../src/utils/episodeLabel.ts')
+const { assToVtt, getSubtitleCandidates, srtToVtt } = await loadTs('../src/utils/subtitleTracks.ts')
 
 test('only root-level folders load remote cover images', () => {
   assert.equal(shouldLoadFolderImage('/', true), true)
@@ -30,6 +31,31 @@ test('extracts readable episode labels from common anime filenames', () => {
   assert.equal(getEpisodeLabel('Show EP12 1080p.mkv'), '第 12 集')
   assert.equal(getEpisodeLabel('Show 第7话.mkv'), '第 07 集')
   assert.equal(getEpisodeLabel('NCOP.mkv'), null)
+})
+
+test('builds same-name subtitle candidates for browser video playback', () => {
+  assert.deepEqual(getSubtitleCandidates('/Show/Episode%2001.mkv'), [
+    { format: 'vtt', path: '/Show/Episode%2001.vtt' },
+    { format: 'srt', path: '/Show/Episode%2001.srt' },
+    { format: 'ass', path: '/Show/Episode%2001.ass' },
+    { format: 'ass', path: '/Show/Episode%2001.ssa' },
+  ])
+})
+
+test('converts srt subtitles to webvtt', () => {
+  assert.equal(
+    srtToVtt('1\r\n00:00:01,250 --> 00:00:03,500\r\n你好\r\n\r\n2\r\n00:00:04,000 --> 00:00:05,000\r\n世界'),
+    'WEBVTT\n\n00:00:01.250 --> 00:00:03.500\n你好\n\n00:00:04.000 --> 00:00:05.000\n世界\n',
+  )
+})
+
+test('converts simple ass dialogue subtitles to webvtt', () => {
+  const ass = [
+    '[Events]',
+    'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
+    'Dialogue: 0,0:00:01.20,0:00:03.40,Default,,0,0,0,,{\\i1}第一行\\N第二行',
+  ].join('\n')
+  assert.equal(assToVtt(ass), 'WEBVTT\n\n00:00:01.200 --> 00:00:03.400\n第一行\n第二行\n')
 })
 const file = (name, id = name) => ({ name, id })
 const folder = name => ({ ...file(name), folder: {} })

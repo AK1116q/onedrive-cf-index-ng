@@ -1,6 +1,6 @@
 import type { OdFileObject } from '../../types'
 
-import { FC, useEffect } from 'react'
+import { FC, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
 import axios from 'axios'
@@ -12,6 +12,7 @@ import { useClipboard } from 'use-clipboard-copy'
 import { getBaseUrl } from '../../utils/getBaseUrl'
 import { getExtension } from '../../utils/getFileIcon'
 import { getStoredToken } from '../../utils/protectedRouteHandler'
+import { getSubtitleCandidates, subtitleTextToVtt } from '../../utils/subtitleTracks'
 
 import { DownloadButton } from '../DownloadBtnGtoup'
 import { DownloadBtnContainer, PreviewContainer } from './Containers'
@@ -24,7 +25,7 @@ import 'plyr-react/plyr.css'
 // Dynamic import to avoid ESM issues in Cloudflare
 const Plyr = dynamic(() => import('plyr-react').then(mod => mod.Plyr), {
   ssr: false,
-  loading: () => <Loading loadingText="正在加载播放器..." />
+  loading: () => <Loading loadingText="正在加载播放器..." />,
 })
 
 const VideoPlayer: FC<{
@@ -33,21 +34,36 @@ const VideoPlayer: FC<{
   width?: number
   height?: number
   thumbnail: string
-  subtitle: string
+  subtitles: ReturnType<typeof getSubtitleCandidates>
+  hashedToken?: string
   isFlv: boolean
   mpegts: any
-}> = ({ videoName, videoUrl, width, height, thumbnail, subtitle, isFlv, mpegts }) => {
+}> = ({ videoName, videoUrl, width, height, thumbnail, subtitles, hashedToken, isFlv, mpegts }) => {
   useEffect(() => {
-    // Really really hacky way to inject subtitles as file blobs into the video element
-    axios
-      .get(subtitle, { responseType: 'blob' })
-      .then(resp => {
-        const track = document.querySelector('track')
-        track?.setAttribute('src', URL.createObjectURL(resp.data))
-      })
-      .catch(() => {
-        console.log('Could not load subtitle.')
-      })
+    let currentSubtitleUrl = ''
+    let cancelled = false
+
+    const loadSubtitle = async () => {
+      const track = document.querySelector('track')
+      if (!track) return
+
+      for (const subtitle of subtitles) {
+        const url = `/api/raw?path=${subtitle.path}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+        try {
+          const response = await axios.get(url, { responseType: 'text' })
+          const vttText = subtitleTextToVtt(response.data, subtitle.format)
+          if (cancelled || !vttText.trim()) return
+          currentSubtitleUrl = URL.createObjectURL(new Blob([vttText], { type: 'text/vtt;charset=utf-8' }))
+          track.setAttribute('src', currentSubtitleUrl)
+          track.setAttribute('label', subtitle.format.toUpperCase())
+          return
+        } catch {
+          // Try the next supported subtitle extension beside the video.
+        }
+      }
+    }
+
+    void loadSubtitle()
 
     if (isFlv) {
       const loadFlv = () => {
@@ -59,14 +75,18 @@ const VideoPlayer: FC<{
       }
       loadFlv()
     }
-  }, [videoUrl, isFlv, mpegts, subtitle])
+    return () => {
+      cancelled = true
+      if (currentSubtitleUrl) URL.revokeObjectURL(currentSubtitleUrl)
+    }
+  }, [videoUrl, isFlv, mpegts, subtitles, hashedToken])
 
   // Common plyr configs, including the video source and plyr options
   const plyrSource = {
     type: 'video',
     title: videoName,
     poster: thumbnail,
-    tracks: [{ kind: 'captions', label: videoName, src: '', default: true }],
+    tracks: [{ kind: 'captions', label: '字幕', src: '', srclang: 'zh', default: true }],
   }
   const plyrOptions = {
     ratio: `${width ?? 16}:${height ?? 9}`,
@@ -87,9 +107,8 @@ const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
   // OneDrive generates thumbnails for its video files, we pick the thumbnail with the highest resolution
   const thumbnail = `/api/thumbnail?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
 
-  // We assume subtitle files are beside the video with the same name, only webvtt '.vtt' files are supported
-  const vtt = `${asPath.substring(0, asPath.lastIndexOf('.'))}.vtt`
-  const subtitle = `/api/raw?path=${vtt}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  // Browser video cannot read subtitle tracks embedded in MKV files, so we look for supported sidecar subtitles.
+  const subtitles = useMemo(() => getSubtitleCandidates(asPath), [asPath])
 
   // We also format the raw video file for the in-browser player as well as all other players
   const videoUrl = `/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`
@@ -119,7 +138,8 @@ const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
             width={file.video?.width}
             height={file.video?.height}
             thumbnail={thumbnail}
-            subtitle={subtitle}
+            subtitles={subtitles}
+            hashedToken={hashedToken ?? undefined}
             isFlv={isFlv}
             mpegts={mpegts}
           />
