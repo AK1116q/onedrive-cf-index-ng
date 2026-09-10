@@ -268,7 +268,8 @@ body {
   opacity: 0.92;
   will-change: transform;
   animation: archive-character-float 12s ease-in-out infinite alternate;
-  mask-image: linear-gradient(to right, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 7%, #000 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 7%, #000 78%, transparent 100%);
 }
 
 .archive-background__character img {
