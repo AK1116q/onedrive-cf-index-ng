@@ -61,10 +61,7 @@ body {
 }
 
 .archive-content {
-  transition:
-    width 350ms ease,
-    margin 350ms ease,
-    opacity 260ms ease;
+  transition: opacity 220ms ease;
 }
 
 .archive-content > nav,
@@ -153,6 +150,8 @@ body {
   opacity: 0;
   transform: translate3d(0, 10px, 0);
   animation: archive-card-in 420ms var(--archive-card-delay, 0ms) ease-out both;
+  content-visibility: auto;
+  contain-intrinsic-size: 19rem 25rem;
 }
 
 .archive-card::after {
@@ -177,6 +176,89 @@ body {
 .archive-card > * {
   position: relative;
   z-index: 1;
+}
+
+.archive-card-actions {
+  color: rgb(78 38 55);
+  border: 1px solid rgb(255 255 255 / 0.38);
+  background: linear-gradient(135deg, rgb(255 238 244 / 0.72), rgb(218 142 170 / 0.34));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 8px 22px rgb(113 51 75 / 0.12);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.archive-hover-preview {
+  color: rgb(65 31 46);
+  border: 1px solid rgb(255 255 255 / 0.56);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0.62), rgb(255 219 230 / 0.46)),
+    radial-gradient(circle at 10% 0%, rgb(255 255 255 / 0.42), transparent 46%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 24px 70px rgb(114 49 75 / 0.2),
+    0 0 40px rgb(255 255 255 / 0.18);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+.archive-hover-image {
+  background: linear-gradient(135deg, rgb(255 238 244 / 0.86), rgb(222 148 176 / 0.34));
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.36),
+    0 14px 38px rgb(108 45 70 / 0.14);
+  --tw-ring-color: rgb(216 92 136 / 0.58);
+}
+
+.archive-hover-file-list {
+  color: rgb(70 33 50);
+  border: 1px solid rgb(255 255 255 / 0.5);
+  background: linear-gradient(180deg, rgb(255 248 251 / 0.54), rgb(255 220 232 / 0.24)), rgb(255 223 233 / 0.3);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.38);
+  backdrop-filter: blur(16px) saturate(135%);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
+}
+
+.archive-hover-file-list-header {
+  border-color: rgb(127 58 84 / 0.14);
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.34), rgb(255 218 229 / 0.16));
+}
+
+.archive-hover-file-list-meta {
+  color: rgb(111 63 80 / 0.76);
+}
+
+.archive-hover-tree-row {
+  color: rgb(81 39 57);
+  transition:
+    background-color 140ms ease,
+    transform 140ms ease;
+}
+
+.archive-hover-tree-row:hover {
+  background: rgb(255 255 255 / 0.28);
+}
+
+.archive-hover-tree-row--folder {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.28), rgb(255 180 207 / 0.14));
+}
+
+.archive-hover-tree-icon {
+  color: rgb(156 75 104 / 0.78);
+}
+
+.archive-hover-tree-children {
+  border-color: rgb(144 69 96 / 0.18);
+}
+
+.archive-hover-skeleton {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.28), rgb(230 147 178 / 0.3), rgb(255 255 255 / 0.28));
+  background-size: 220% 100%;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
+  animation:
+    pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite,
+    archive-skeleton-sheen 1.35s ease-in-out infinite;
 }
 
 .site-footer {
@@ -331,6 +413,7 @@ body {
   bottom: 2vh;
   width: var(--archive-character-width);
   height: calc(100vh - 5rem);
+  overflow: hidden;
   opacity: 0.92;
   will-change: transform;
   animation: archive-character-float 12s ease-in-out infinite alternate;
@@ -341,6 +424,26 @@ body {
     filter 520ms ease;
   mask-image: linear-gradient(to right, transparent 0%, #000 7%, #000 78%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 7%, #000 78%, transparent 100%);
+}
+
+.archive-background__character::before,
+.archive-background__character::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.archive-background__character::before {
+  inset: 0 0 auto;
+  height: 18%;
+  background: linear-gradient(to bottom, rgb(247 195 211 / 0.92), rgb(247 195 211 / 0));
+}
+
+.archive-background__character::after {
+  inset: 0 auto 0 0;
+  width: 18%;
+  background: linear-gradient(to right, rgb(247 195 211 / 0.82), rgb(247 195 211 / 0));
 }
 
 .archive-background__character img {
@@ -389,6 +492,9 @@ body {
   overflow: hidden;
   color: white;
   background: #0d080d;
+  contain: paint;
+  will-change: opacity, visibility;
+  transform: translateZ(0);
   animation: archive-intro-exit 0.7s 2.15s cubic-bezier(0.7, 0, 0.3, 1) forwards;
 }
 
@@ -397,6 +503,7 @@ body {
   inset: -30%;
   transform: rotate(-12deg) translateX(-105%);
   background: #ff4f91;
+  will-change: transform;
   animation: archive-slice 2.05s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
@@ -414,6 +521,7 @@ body {
   width: min(82vw, 40rem);
   text-align: left;
   text-shadow: 0 8px 28px rgb(0 0 0 / 0.28);
+  will-change: transform, opacity;
   animation: archive-title-in 0.7s 0.18s both cubic-bezier(0.2, 0.85, 0.25, 1);
 }
 
@@ -504,6 +612,15 @@ body {
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes archive-skeleton-sheen {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
   }
 }
 

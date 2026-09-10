@@ -162,7 +162,7 @@ const GridItem = ({
         ),
       )
       setPreviewOpen(true)
-    }, 650)
+    }, 520)
   }
 
   useEffect(() => () => clearTimeout(timer.current), [])
@@ -332,12 +332,12 @@ const FolderGridLayout = ({
             }
             className="archive-card group relative min-w-0 rounded-2xl p-2 transition-colors duration-200"
           >
-            <div className="absolute top-0 right-0 z-10 m-1 rounded bg-white/50 py-0.5 opacity-0 transition-all duration-100 group-hover:opacity-100 dark:bg-gray-900/50">
+            <div className="archive-card-actions absolute top-0 right-0 z-10 m-1 rounded py-0.5 opacity-0 transition-all duration-100 group-hover:opacity-100">
               {c.folder ? (
                 <div>
                   <span
                     title={'复制文件夹链接'}
-                    className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    className="cursor-pointer rounded px-1.5 py-1 hover:bg-white/35"
                     onClick={() => {
                       clipboard.copy(`${getBaseUrl()}${getItemPath(c.name)}`)
                       toast.success('已复制文件夹链接。')
@@ -350,7 +350,7 @@ const FolderGridLayout = ({
                   ) : (
                     <span
                       title={'下载文件夹'}
-                      className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      className="cursor-pointer rounded px-1.5 py-1 hover:bg-white/35"
                       onClick={handleFolderDownload(getItemPath(c.name), c.id, c.name)}
                     >
                       <FontAwesomeIcon icon={['far', 'arrow-alt-circle-down']} />
@@ -361,7 +361,7 @@ const FolderGridLayout = ({
                 <div>
                   <span
                     title={'复制文件直链'}
-                    className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    className="cursor-pointer rounded px-1.5 py-1 hover:bg-white/35"
                     onClick={() => {
                       clipboard.copy(
                         `${getBaseUrl()}/api/raw?path=${getItemPath(c.name)}${
@@ -375,7 +375,7 @@ const FolderGridLayout = ({
                   </span>
                   <a
                     title={'下载文件'}
-                    className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    className="cursor-pointer rounded px-1.5 py-1 hover:bg-white/35"
                     href={`${getBaseUrl()}/api/raw?path=${getItemPath(c.name)}${
                       hashedToken ? `&odpt=${hashedToken}` : ''
                     }`}
@@ -389,7 +389,7 @@ const FolderGridLayout = ({
             <div
               className={`${
                 selected[c.id] ? 'opacity-100' : 'opacity-0'
-              } absolute top-0 left-0 z-10 m-1 rounded bg-white/50 py-0.5 group-hover:opacity-100 dark:bg-gray-900/50`}
+              } archive-card-actions absolute top-0 left-0 z-10 m-1 rounded py-0.5 group-hover:opacity-100`}
             >
               {!c.folder && !(c.name === '.password') && (
                 <Checkbox

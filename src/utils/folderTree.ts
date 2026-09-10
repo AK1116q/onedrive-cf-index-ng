@@ -23,6 +23,7 @@ type FolderTreeSource = {
 }
 
 type BuildFolderTreeOptions = {
+  maxDepth?: number
   nestedDelayMs?: number
   signal?: AbortSignal
 }
@@ -83,15 +84,16 @@ export async function buildFolderTree(
     })
   }
 
-  const populateFolders = async (nodes: FolderTreeNode[]) => {
+  const populateFolders = async (nodes: FolderTreeNode[], depth: number) => {
     throwIfAborted()
+    if (typeof options.maxDepth === 'number' && depth >= options.maxDepth) return
     await Promise.all(
       nodes.map(async node => {
         if (!node.isFolder) return
         try {
           node.children = await readFolder(node.path)
           publish()
-          await populateFolders(node.children)
+          await populateFolders(node.children, depth + 1)
         } catch (reason) {
           if (options.signal?.aborted) throw reason
           node.error = reason instanceof Error ? reason.message : '目录读取失败。'
@@ -104,7 +106,7 @@ export async function buildFolderTree(
   root = await readFolder(rootPath)
   publish()
   await waitForNestedDelay()
-  await populateFolders(root)
+  await populateFolders(root, 0)
   return root
 }
 

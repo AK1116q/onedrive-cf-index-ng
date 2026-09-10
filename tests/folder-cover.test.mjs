@@ -193,6 +193,31 @@ test('folder hover tree reads pagination and preserves nested hierarchy', async 
   assert.deepEqual(countFolderTree(tree), { files: 4, folders: 1 })
 })
 
+test('folder hover tree can skip nested reads for fast previews', async () => {
+  const requested = []
+  const tree = await buildFolderTree(
+    '/Show',
+    {
+      list: async path => {
+        requested.push(path)
+        if (path === '/Show/Season%201') return { value: [file('episode.mkv')] }
+        return { value: [folder('Season 1'), file('trailer.mkv')] }
+      },
+    },
+    undefined,
+    { maxDepth: 0 },
+  )
+
+  assert.deepEqual(requested, ['/Show'])
+  assert.deepEqual(
+    tree.map(node => ({ name: node.name, children: node.children.length })),
+    [
+      { name: 'Season 1', children: 0 },
+      { name: 'trailer.mkv', children: 0 },
+    ],
+  )
+})
+
 test('folder hover tree publishes the root before nested folders finish', async () => {
   let releaseNested
   const nestedReady = new Promise(resolve => {
