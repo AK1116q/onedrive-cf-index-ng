@@ -12,6 +12,8 @@ import { countFolderTree } from '../utils/folderTree'
 import { loadFolderTree, stopWatchingFolderTree } from '../utils/loadFolderTree'
 import { getFileIcon } from '../utils/getFileIcon'
 
+const TREE_LOAD_DELAY_MS = 280
+
 const TreeRows = ({ nodes }: { nodes: FolderTreeNode[] }) => (
   <ul className="space-y-0.5">
     {nodes.map(node => (
@@ -82,19 +84,26 @@ export default function CoverHoverPreview({
   useEffect(() => {
     if (!folder || !open) return
     let current = true
+    let started = false
     const updateTree = (value: FolderTreeNode[]) => current && setTree([...value])
+    const timer = setTimeout(() => {
+      if (!current) return
+      started = true
+      loadFolderTree(path, revision, updateTree)
+        .then(value => {
+          if (!current) return
+          setTree(value)
+          setTreeComplete(true)
+        })
+        .catch(error => current && setTreeError(error instanceof Error ? error.message : '目录读取失败。'))
+    }, TREE_LOAD_DELAY_MS)
+    setTree(undefined)
     setTreeError('')
     setTreeComplete(false)
-    loadFolderTree(path, revision, updateTree)
-      .then(value => {
-        if (!current) return
-        setTree(value)
-        setTreeComplete(true)
-      })
-      .catch(error => current && setTreeError(error instanceof Error ? error.message : '目录读取失败。'))
     return () => {
       current = false
-      stopWatchingFolderTree(path, revision, updateTree)
+      clearTimeout(timer)
+      if (started) stopWatchingFolderTree(path, revision, updateTree)
     }
   }, [folder, open, path, revision])
 

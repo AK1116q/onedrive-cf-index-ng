@@ -12,7 +12,6 @@ import { getStoredToken } from '../utils/protectedRouteHandler'
 import { coverPreviewLayout } from '../utils/coverPreviewLayout'
 import CoverHoverPreview from './CoverHoverPreview'
 import GeneratedCover from './GeneratedCover'
-import { prefetchFolderTree } from '../utils/loadFolderTree'
 import { loadBangumiCover } from '../utils/bangumiCover'
 import { shouldLoadFolderImage } from '../utils/folderCoverPolicy'
 import { getEpisodeLabel } from '../utils/episodeLabel'
@@ -92,7 +91,6 @@ const GridItem = ({ c, path, parentPath }: { c: OdFolderChildren; path: string; 
     clearTimeout(timer.current)
     timer.current = setTimeout(() => {
       if (!anchor.current) return
-      if (c.folder) prefetchFolderTree(path, c.lastModifiedDateTime)
       setPreviewLayout(
         coverPreviewLayout(
           { width: window.innerWidth, height: window.innerHeight },
