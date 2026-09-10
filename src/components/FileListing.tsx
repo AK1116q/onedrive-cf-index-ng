@@ -170,11 +170,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     )
   }
   if (!data) {
-    return (
-      <PreviewContainer>
-        <Loading loadingText={'加载中 ...'} />
-      </PreviewContainer>
-    )
+    return <Loading loadingText={'加载中 ...'} focusBackground />
   }
 
   const responses: any[] = data ? [].concat(...data) : []

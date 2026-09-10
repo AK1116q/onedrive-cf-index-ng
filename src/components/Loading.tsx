@@ -1,14 +1,29 @@
-const Loading: React.FC<{ loadingText: string }> = ({ loadingText }) => {
+import type { FC } from 'react'
+import { useEffect } from 'react'
+
+const Loading: FC<{ loadingText: string; focusBackground?: boolean }> = ({ loadingText, focusBackground }) => {
+  useEffect(() => {
+    if (!focusBackground) return
+    document.documentElement.dataset.archiveLoading = 'true'
+    return () => {
+      delete document.documentElement.dataset.archiveLoading
+    }
+  }, [focusBackground])
+
   return (
-    <div className="flex items-center justify-center space-x-1 rounded py-32 dark:text-white">
-      <LoadingIcon className="-ml-1 mr-3 h-5 w-5 animate-spin" />
+    <div
+      className={`flex items-center justify-center space-x-1 rounded py-32 dark:text-white ${
+        focusBackground ? 'archive-loading-stage' : ''
+      }`}
+    >
+      <LoadingIcon className="mr-3 -ml-1 h-5 w-5 animate-spin" />
       <div>{loadingText}</div>
     </div>
   )
 }
 
 // As there is no CSS-in-JS styling system, pass class list to override styles
-export const LoadingIcon: React.FC<{ className?: string }> = ({ className }) => {
+export const LoadingIcon: FC<{ className?: string }> = ({ className }) => {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
