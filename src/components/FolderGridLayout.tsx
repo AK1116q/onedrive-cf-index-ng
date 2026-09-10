@@ -262,7 +262,7 @@ const FolderGridLayout = ({
         {folderChildren.map((c: OdFolderChildren) => (
           <div
             key={c.id}
-            className="group dark:hover:bg-gray-850 relative min-w-0 rounded-2xl p-2 transition-colors duration-200 hover:bg-gray-100"
+            className="archive-card group relative min-w-0 rounded-2xl p-2 transition-colors duration-200"
           >
             <div className="absolute top-0 right-0 z-10 m-1 rounded bg-white/50 py-0.5 opacity-0 transition-all duration-100 group-hover:opacity-100 dark:bg-gray-900/50">
               {c.folder ? (

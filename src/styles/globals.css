@@ -37,7 +37,7 @@ code[class*='language-'] {
 :root {
   --archive-blue: 255 91 154;
   --archive-cyan: 255 182 205;
-  --archive-ink: 13 8 13;
+  --archive-ink: 246 199 211;
 }
 
 html,
@@ -53,7 +53,7 @@ body {
 }
 
 .site-shell {
-  color: rgb(226 232 240);
+  color: rgb(61 34 46);
 }
 
 .site-main {
@@ -66,6 +66,11 @@ body {
     margin 350ms ease;
 }
 
+.archive-content > nav,
+.archive-content > nav * {
+  color: rgb(73 40 54) !important;
+}
+
 @media (min-width: 1100px) {
   .archive-content {
     width: 71%;
@@ -76,37 +81,45 @@ body {
 }
 
 .site-navbar {
-  border-bottom: 1px solid rgb(255 139 181 / 0.16);
-  background: linear-gradient(90deg, rgb(10 7 11 / 0.94), rgb(38 13 28 / 0.8));
-  box-shadow: 0 16px 60px rgb(51 4 25 / 0.26);
+  border-bottom: 1px solid rgb(125 62 85 / 0.14);
+  background: linear-gradient(90deg, rgb(255 232 238 / 0.9), rgb(247 195 211 / 0.78));
+  box-shadow: 0 16px 60px rgb(118 49 75 / 0.12);
 }
 
 .archive-panel {
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid rgb(255 190 214 / 0.3);
+  color: rgb(56 31 42);
+  border: 1px solid rgb(255 255 255 / 0.68);
   border-radius: 1.5rem;
   background:
-    linear-gradient(145deg, rgb(255 222 233 / 0.11), transparent 34%),
-    linear-gradient(120deg, rgb(55 16 37 / 0.6), rgb(18 9 17 / 0.48));
+    linear-gradient(145deg, rgb(255 255 255 / 0.5), transparent 34%),
+    linear-gradient(120deg, rgb(255 225 234 / 0.5), rgb(238 174 194 / 0.4));
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.16),
-    inset 0 -1px 0 rgb(255 123 170 / 0.08),
-    0 26px 80px rgb(30 2 18 / 0.3),
-    0 0 44px rgb(255 72 139 / 0.07);
+    inset 0 -1px 0 rgb(143 63 92 / 0.08),
+    0 26px 80px rgb(94 38 60 / 0.16),
+    0 0 44px rgb(255 255 255 / 0.18);
   backdrop-filter: blur(28px) saturate(145%);
   -webkit-backdrop-filter: blur(28px) saturate(145%);
 }
 
 .archive-panel > :first-child {
-  border-color: rgb(255 190 214 / 0.18);
-  background: linear-gradient(90deg, rgb(255 255 255 / 0.035), transparent);
+  color: rgb(89 48 64);
+  border-color: rgb(120 58 82 / 0.12);
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.22), transparent);
+}
+
+.archive-card:hover {
+  background: rgb(255 255 255 / 0.25);
 }
 
 .site-footer {
   position: relative;
   z-index: 1;
-  background: rgb(13 8 13 / 0.88);
+  color: rgb(79 46 59);
+  border-color: rgb(125 62 85 / 0.12);
+  background: rgb(255 225 234 / 0.72);
   backdrop-filter: blur(16px);
 }
 
@@ -117,17 +130,17 @@ body {
   overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(circle at 20% 5%, rgb(var(--archive-blue) / 0.38), transparent 34rem),
-    radial-gradient(circle at 90% 76%, rgb(var(--archive-cyan) / 0.2), transparent 32rem),
-    linear-gradient(135deg, #080609 0%, #26101c 48%, #090609 100%);
+    radial-gradient(circle at 18% 8%, rgb(255 255 255 / 0.5), transparent 34rem),
+    radial-gradient(circle at 88% 72%, rgb(255 235 241 / 0.72), transparent 36rem),
+    linear-gradient(118deg, #efb7c3 0%, #f2bdca 38%, #f7ccd6 70%, #f9d7df 100%);
 }
 
 .archive-background::after {
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.14;
-  background-image: radial-gradient(rgb(255 255 255 / 0.8) 0.55px, transparent 0.7px);
+  opacity: 0.12;
+  background-image: radial-gradient(rgb(93 43 62 / 0.7) 0.55px, transparent 0.7px);
   background-size: 5px 5px;
   mask-image: linear-gradient(to bottom, black, transparent 82%);
 }
@@ -136,9 +149,9 @@ body {
   position: absolute;
   width: min(48vw, 42rem);
   aspect-ratio: 1;
-  border: 1px solid rgb(255 166 198 / 0.26);
+  border: 1px solid rgb(126 62 87 / 0.18);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, rgb(255 91 154 / 0.25), transparent 60%);
+  background: radial-gradient(circle at 35% 35%, rgb(255 255 255 / 0.28), transparent 60%);
   will-change: transform;
   animation: archive-float 16s ease-in-out infinite alternate;
 }
@@ -163,7 +176,7 @@ body {
   width: 16rem;
   height: 190%;
   transform: rotate(24deg);
-  background: linear-gradient(90deg, transparent, rgb(255 91 154 / 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.26), transparent);
   filter: blur(2px);
   animation: archive-beam 13s ease-in-out infinite alternate;
 }
@@ -178,8 +191,8 @@ body {
   transform-origin: center;
   opacity: 0.13;
   background-image:
-    linear-gradient(rgb(255 124 173 / 0.6) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 124 173 / 0.6) 1px, transparent 1px);
+    linear-gradient(rgb(126 62 87 / 0.24) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(126 62 87 / 0.24) 1px, transparent 1px);
   background-size: 44px 44px;
   animation: archive-grid 18s linear infinite;
 }
@@ -192,7 +205,7 @@ body {
   top: -24vh;
   opacity: 0.2;
   transform: rotate(24deg);
-  background: linear-gradient(90deg, transparent, rgb(255 77 143 / 0.84), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.48), transparent);
   filter: blur(1px);
   will-change: transform;
   animation: archive-slash-drift 11s ease-in-out infinite alternate;
@@ -215,10 +228,10 @@ body {
   right: 5vw;
   width: min(34vw, 32rem);
   aspect-ratio: 1;
-  border: 1px solid rgb(255 166 198 / 0.2);
+  border: 1px solid rgb(112 52 75 / 0.2);
   border-radius: 50%;
   opacity: 0.72;
-  background: repeating-conic-gradient(from 8deg, rgb(255 166 198 / 0.3) 0 1deg, transparent 1deg 9deg);
+  background: repeating-conic-gradient(from 8deg, rgb(112 52 75 / 0.22) 0 1deg, transparent 1deg 9deg);
   mask: radial-gradient(circle, transparent 0 62%, #000 62.5% 68%, transparent 68.5%);
   will-change: transform;
   animation: archive-dial-spin 38s linear infinite;
@@ -227,7 +240,7 @@ body {
 .archive-background__dial span {
   position: absolute;
   inset: 12%;
-  border: 1px solid rgb(255 91 154 / 0.34);
+  border: 1px solid rgb(112 52 75 / 0.22);
   border-radius: inherit;
 }
 
@@ -235,7 +248,7 @@ body {
   position: absolute;
   right: -4rem;
   bottom: 16vh;
-  color: rgb(255 168 199 / 0.14);
+  color: rgb(91 43 61 / 0.13);
   font-size: clamp(2rem, 5vw, 5.5rem);
   font-weight: 900;
   line-height: 1;
@@ -252,21 +265,21 @@ body {
   bottom: 2vh;
   width: min(36vw, 36rem);
   height: calc(100vh - 5rem);
-  opacity: 0.7;
+  opacity: 0.92;
   will-change: transform;
   animation: archive-character-float 12s ease-in-out infinite alternate;
-  mask-image: linear-gradient(to right, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 78%, transparent 100%);
 }
 
 .archive-background__character img {
   display: block;
   width: 100%;
   height: 100%;
-  border: 1px solid rgb(255 190 212 / 0.22);
-  border-radius: 1.5rem;
+  border: 0;
+  border-radius: 1rem;
   object-fit: cover;
   object-position: center 24%;
-  box-shadow: 0 28px 90px rgb(0 0 0 / 0.46);
+  box-shadow: 0 28px 90px rgb(112 52 75 / 0.16);
 }
 
 .archive-intro {

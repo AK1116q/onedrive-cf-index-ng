@@ -29,7 +29,7 @@ export default function CinematicChrome() {
         <div className="archive-background__dial">
           <span />
         </div>
-        <div className="archive-background__ticker">ANIME ARCHIVE · ONEDRIVE · MEDIA LIBRARY ·</div>
+        <div className="archive-background__ticker">NEKOMIMI ARCHIVE · MEDIA LIBRARY · WATCH LIST ·</div>
         <div className="archive-background__character">
           {/* Decorative user-provided artwork; keep it out of the accessibility tree. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}

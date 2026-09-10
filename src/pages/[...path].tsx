@@ -6,7 +6,6 @@ import Navbar from '../components/Navbar'
 import FileListing from '../components/FileListing'
 import Footer from '../components/Footer'
 import Breadcrumb from '../components/Breadcrumb'
-import SwitchLayout from '../components/SwitchLayout'
 
 export default function Folders() {
   const { query } = useRouter()
@@ -22,7 +21,6 @@ export default function Folders() {
         <div className="archive-content mx-auto w-full max-w-[92rem] py-4 sm:p-4">
           <nav className="mb-4 flex items-center justify-between space-x-3 px-4 sm:px-0 sm:pl-1">
             <Breadcrumb query={query} />
-            <SwitchLayout />
           </nav>
           <FileListing query={query} />
         </div>
