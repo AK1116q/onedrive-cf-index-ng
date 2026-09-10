@@ -6,6 +6,8 @@ type TreeCacheEntry = {
   promise: Promise<FolderTreeNode[]>
   value?: FolderTreeNode[]
   listeners: Set<TreeListener>
+  controller?: AbortController
+  complete?: boolean
 }
 type StoredTreeCacheEntry = {
   cachedAt: number
@@ -19,6 +21,7 @@ const waiting: Array<() => void> = []
 let activeRequests = 0
 const SESSION_CACHE_PREFIX = 'folder-tree-preview:'
 const SESSION_CACHE_TTL = 1000 * 60 * 30
+const NESTED_TREE_DELAY_MS = 160
 
 const canUseSessionStorage = () => typeof window !== 'undefined' && 'sessionStorage' in window
 
@@ -77,17 +80,21 @@ export function loadFolderTree(path: string, revision: string, listener?: TreeLi
     return promise
   }
 
-  const entry = { listeners: new Set<TreeListener>() } as TreeCacheEntry
+  const controller = new AbortController()
+  const entry = { controller, listeners: new Set<TreeListener>() } as TreeCacheEntry
   if (listener) entry.listeners.add(listener)
   entry.promise = buildFolderTree(
     path,
     {
-      list: async (folderPath, next) => {
+      list: async (folderPath, next, signal) => {
         const params = new URLSearchParams({ path: decodeURIComponent(folderPath) })
         if (next) params.set('next', next)
         const token = getStoredToken(folderPath)
         const response = await withRequestSlot(() =>
-          fetch(`/api?${params}`, token ? { headers: { 'od-protected-token': token } } : undefined),
+          fetch(`/api?${params}`, {
+            ...(token ? { headers: { 'od-protected-token': token } } : undefined),
+            signal,
+          }),
         )
         if (!response.ok)
           throw new Error(response.status === 401 ? '此目录需要密码。' : `目录读取失败（${response.status}）。`)
@@ -100,13 +107,24 @@ export function loadFolderTree(path: string, revision: string, listener?: TreeLi
       entry.value = value
       entry.listeners.forEach(update => update(value))
     },
+    { nestedDelayMs: NESTED_TREE_DELAY_MS, signal: controller.signal },
   )
   treeCache.set(cacheKey, entry)
-  entry.promise.then(value => writeSessionCache(cacheKey, value))
+  entry.promise
+    .then(value => {
+      entry.complete = true
+      writeSessionCache(cacheKey, value)
+    })
+    .catch(() => undefined)
   entry.promise.catch(() => treeCache.delete(cacheKey))
   return entry.promise
 }
 
 export function stopWatchingFolderTree(path: string, revision: string, listener: TreeListener) {
-  treeCache.get(`${path}|${revision}`)?.listeners.delete(listener)
+  const entry = treeCache.get(`${path}|${revision}`)
+  entry?.listeners.delete(listener)
+  if (entry && entry.listeners.size === 0 && !entry.complete) {
+    entry.controller?.abort()
+    treeCache.delete(`${path}|${revision}`)
+  }
 }

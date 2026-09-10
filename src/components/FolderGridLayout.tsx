@@ -1,4 +1,5 @@
 import type { OdFolderChildren } from '../types'
+import type { CSSProperties } from 'react'
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
@@ -16,7 +17,40 @@ import { loadBangumiCover } from '../utils/bangumiCover'
 import { shouldLoadFolderImage } from '../utils/folderCoverPolicy'
 import { getEpisodeLabel } from '../utils/episodeLabel'
 
-const GridItem = ({ c, path, parentPath }: { c: OdFolderChildren; path: string; parentPath: string }) => {
+const BROKEN_IMAGE_CACHE_PREFIX = 'broken-cover-image:'
+const PRIORITY_IMAGE_COUNT = 10
+
+const canUseSessionStorage = () => typeof window !== 'undefined' && 'sessionStorage' in window
+
+const readBrokenImageCache = (url?: string) => {
+  if (!url || !canUseSessionStorage()) return false
+  try {
+    return window.sessionStorage.getItem(`${BROKEN_IMAGE_CACHE_PREFIX}${url}`) === '1'
+  } catch {
+    return false
+  }
+}
+
+const writeBrokenImageCache = (url?: string) => {
+  if (!url || !canUseSessionStorage()) return
+  try {
+    window.sessionStorage.setItem(`${BROKEN_IMAGE_CACHE_PREFIX}${url}`, '1')
+  } catch {
+    // Best-effort cache; failed storage should not affect rendering.
+  }
+}
+
+const GridItem = ({
+  c,
+  path,
+  parentPath,
+  priorityImage,
+}: {
+  c: OdFolderChildren
+  path: string
+  parentPath: string
+  priorityImage: boolean
+}) => {
   const loadFolderImage = shouldLoadFolderImage(parentPath, Boolean(c.folder))
   const episodeLabel = c.file ? getEpisodeLabel(c.name) : null
   const hashedToken = getStoredToken(path)
@@ -34,6 +68,7 @@ const GridItem = ({ c, path, parentPath }: { c: OdFolderChildren; path: string; 
   const [officialCover, setOfficialCover] = useState<string>()
   const [officialResolved, setOfficialResolved] = useState(!loadFolderImage)
   const [officialFailed, setOfficialFailed] = useState(false)
+  const [coverLookupEnabled, setCoverLookupEnabled] = useState(!loadFolderImage)
   const anchor = useRef<HTMLAnchorElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [previewLayout, setPreviewLayout] = useState<ReturnType<typeof coverPreviewLayout> | null>(null)
@@ -50,10 +85,38 @@ const GridItem = ({ c, path, parentPath }: { c: OdFolderChildren; path: string; 
     : thumbnailUrl
 
   useEffect(() => {
+    if (!loadFolderImage) {
+      setCoverLookupEnabled(true)
+      return
+    }
+    if (priorityImage || typeof IntersectionObserver === 'undefined') {
+      setCoverLookupEnabled(true)
+      return
+    }
+    setCoverLookupEnabled(false)
+    const element = anchor.current
+    if (!element) return
+    const observer = new IntersectionObserver(
+      entries => {
+        if (!entries.some(entry => entry.isIntersecting)) return
+        setCoverLookupEnabled(true)
+        observer.disconnect()
+      },
+      { rootMargin: '720px 0px' },
+    )
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [loadFolderImage, priorityImage])
+
+  useEffect(() => {
     setOfficialCover(undefined)
     setOfficialFailed(false)
     if (!loadFolderImage) {
       setOfficialResolved(true)
+      return
+    }
+    if (!coverLookupEnabled) {
+      setOfficialResolved(false)
       return
     }
     let current = true
@@ -66,10 +129,10 @@ const GridItem = ({ c, path, parentPath }: { c: OdFolderChildren; path: string; 
     return () => {
       current = false
     }
-  }, [c.name, loadFolderImage])
+  }, [c.name, coverLookupEnabled, loadFolderImage])
 
   useEffect(() => {
-    setBrokenThumbnail(false)
+    setBrokenThumbnail(readBrokenImageCache(imageUrl))
     setLoadedThumbnail(undefined)
   }, [imageUrl])
 
@@ -145,14 +208,16 @@ const GridItem = ({ c, path, parentPath }: { c: OdFolderChildren; path: string; 
               src={imageUrl}
               alt={c.name}
               title={imageUrl === officialCover ? '官方封面来源：Bangumi' : undefined}
-              loading="lazy"
+              loading={priorityImage ? 'eager' : 'lazy'}
               decoding="async"
+              fetchPriority={priorityImage ? 'high' : 'auto'}
               onLoad={() => setLoadedThumbnail(imageUrl)}
               onError={() => {
                 if (imageUrl === officialCover) {
                   setOfficialFailed(true)
                   return
                 }
+                writeBrokenImageCache(imageUrl)
                 setBrokenThumbnail(true)
               }}
             />
@@ -257,9 +322,14 @@ const FolderGridLayout = ({
       </div>
 
       <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] sm:gap-4 sm:p-4">
-        {folderChildren.map((c: OdFolderChildren) => (
+        {folderChildren.map((c: OdFolderChildren, index: number) => (
           <div
             key={c.id}
+            style={
+              {
+                '--archive-card-delay': `${Math.min(index, 12) * 34}ms`,
+              } as CSSProperties & Record<'--archive-card-delay', string>
+            }
             className="archive-card group relative min-w-0 rounded-2xl p-2 transition-colors duration-200"
           >
             <div className="absolute top-0 right-0 z-10 m-1 rounded bg-white/50 py-0.5 opacity-0 transition-all duration-100 group-hover:opacity-100 dark:bg-gray-900/50">
@@ -330,7 +400,13 @@ const FolderGridLayout = ({
               )}
             </div>
 
-            <GridItem key={getItemPath(c.name)} c={c} path={getItemPath(c.name)} parentPath={path} />
+            <GridItem
+              key={getItemPath(c.name)}
+              c={c}
+              path={getItemPath(c.name)}
+              parentPath={path}
+              priorityImage={index < PRIORITY_IMAGE_COUNT}
+            />
           </div>
         ))}
       </div>

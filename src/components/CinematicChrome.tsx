@@ -17,6 +17,18 @@ export default function CinematicChrome() {
     return () => window.clearTimeout(timer)
   }, [])
 
+  useEffect(() => {
+    const updateMotionState = () => {
+      document.documentElement.dataset.archiveMotion = document.hidden ? 'paused' : 'running'
+    }
+    updateMotionState()
+    document.addEventListener('visibilitychange', updateMotionState)
+    return () => {
+      document.removeEventListener('visibilitychange', updateMotionState)
+      delete document.documentElement.dataset.archiveMotion
+    }
+  }, [])
+
   return (
     <>
       <div className="archive-background" aria-hidden="true">

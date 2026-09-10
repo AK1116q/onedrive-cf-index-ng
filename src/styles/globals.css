@@ -114,6 +114,37 @@ body {
   background: rgb(255 255 255 / 0.25);
 }
 
+.archive-card {
+  overflow: hidden;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  animation: archive-card-in 420ms var(--archive-card-delay, 0ms) ease-out both;
+}
+
+.archive-card::after {
+  content: '';
+  position: absolute;
+  inset: -40% -80%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(-34%, 0, 0) rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22), transparent);
+  transition:
+    opacity 220ms ease,
+    transform 520ms ease;
+}
+
+.archive-card:hover::after {
+  opacity: 1;
+  transform: translate3d(34%, 0, 0) rotate(18deg);
+}
+
+.archive-card > * {
+  position: relative;
+  z-index: 1;
+}
+
 .site-footer {
   position: relative;
   z-index: 1;
@@ -283,6 +314,16 @@ body {
   box-shadow: 0 28px 90px rgb(112 52 75 / 0.16);
 }
 
+:root[data-archive-motion='paused'] .archive-background__orb,
+:root[data-archive-motion='paused'] .archive-background__beam,
+:root[data-archive-motion='paused'] .archive-background__grid,
+:root[data-archive-motion='paused'] .archive-background__slash,
+:root[data-archive-motion='paused'] .archive-background__dial,
+:root[data-archive-motion='paused'] .archive-background__ticker,
+:root[data-archive-motion='paused'] .archive-background__character {
+  animation-play-state: paused;
+}
+
 .archive-intro {
   position: fixed;
   inset: 0;
@@ -403,6 +444,13 @@ body {
   }
 }
 
+@keyframes archive-card-in {
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @keyframes archive-slice {
   45%,
   65% {
@@ -466,6 +514,10 @@ body {
   .archive-background__slash--two {
     display: none;
   }
+  .archive-background__beam,
+  .archive-background__slash--one {
+    opacity: 0.12;
+  }
   .archive-intro__title {
     letter-spacing: -0.04em;
   }
@@ -484,5 +536,13 @@ body {
   .archive-intro__content,
   .archive-intro__line span {
     animation: none !important;
+  }
+  .archive-card {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+  .archive-card::after {
+    display: none;
   }
 }
