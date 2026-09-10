@@ -178,17 +178,6 @@ body {
   z-index: 1;
 }
 
-.archive-card-actions {
-  color: rgb(78 38 55);
-  border: 1px solid rgb(255 255 255 / 0.38);
-  background: linear-gradient(135deg, rgb(255 238 244 / 0.72), rgb(218 142 170 / 0.34));
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.45),
-    0 8px 22px rgb(113 51 75 / 0.12);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-}
-
 .archive-hover-preview {
   color: rgb(65 31 46);
   border: 1px solid rgb(255 255 255 / 0.56);

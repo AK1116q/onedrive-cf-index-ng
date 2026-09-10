@@ -21,7 +21,6 @@ const waiting: Array<() => void> = []
 let activeRequests = 0
 const SESSION_CACHE_PREFIX = 'folder-tree-preview:'
 const SESSION_CACHE_TTL = 1000 * 60 * 30
-const PREVIEW_TREE_DEPTH = 0
 
 const canUseSessionStorage = () => typeof window !== 'undefined' && 'sessionStorage' in window
 
@@ -107,7 +106,7 @@ export function loadFolderTree(path: string, revision: string, listener?: TreeLi
       entry.value = value
       entry.listeners.forEach(update => update(value))
     },
-    { maxDepth: PREVIEW_TREE_DEPTH, signal: controller.signal },
+    { signal: controller.signal },
   )
   treeCache.set(cacheKey, entry)
   entry.promise

@@ -68,6 +68,7 @@ export default function CoverHoverPreview({
   const [entered, setEntered] = useState(false)
   const [tree, setTree] = useState<FolderTreeNode[]>()
   const [treeError, setTreeError] = useState('')
+  const [treeComplete, setTreeComplete] = useState(false)
 
   useEffect(() => {
     let second = 0
@@ -92,11 +93,13 @@ export default function CoverHoverPreview({
         .then(value => {
           if (!current) return
           setTree(value)
+          setTreeComplete(true)
         })
         .catch(error => current && setTreeError(error instanceof Error ? error.message : '目录读取失败。'))
     }, TREE_LOAD_DELAY_MS)
     setTree(undefined)
     setTreeError('')
+    setTreeComplete(false)
     return () => {
       current = false
       clearTimeout(timer)
@@ -153,7 +156,9 @@ export default function CoverHoverPreview({
             <div className="archive-hover-file-list-header shrink-0 border-b px-3 py-2.5">
               <div className="text-sm font-semibold">目录内容</div>
               <div className="archive-hover-file-list-meta mt-0.5 text-xs">
-                {counts ? `${counts.files} 个文件 · ${counts.folders} 个子文件夹` : '正在读取目录...'}
+                {counts
+                  ? `${counts.files} 个文件 · ${counts.folders} 个子文件夹${treeComplete ? '' : ' · 正在补全'}`
+                  : '正在读取目录...'}
               </div>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-2">

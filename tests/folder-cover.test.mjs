@@ -193,7 +193,7 @@ test('folder hover tree reads pagination and preserves nested hierarchy', async 
   assert.deepEqual(countFolderTree(tree), { files: 4, folders: 1 })
 })
 
-test('folder hover tree can skip nested reads for fast previews', async () => {
+test('folder tree builder can skip nested reads when maxDepth is set', async () => {
   const requested = []
   const tree = await buildFolderTree(
     '/Show',
