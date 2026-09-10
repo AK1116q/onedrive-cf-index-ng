@@ -13,7 +13,7 @@ export default function CinematicChrome() {
     }
 
     sessionStorage.setItem(INTRO_KEY, '1')
-    const timer = window.setTimeout(() => setIntroVisible(false), 1900)
+    const timer = window.setTimeout(() => setIntroVisible(false), 2850)
     return () => window.clearTimeout(timer)
   }, [])
 

@@ -389,7 +389,7 @@ body {
   overflow: hidden;
   color: white;
   background: #0d080d;
-  animation: archive-intro-exit 0.55s 1.35s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+  animation: archive-intro-exit 0.7s 2.15s cubic-bezier(0.7, 0, 0.3, 1) forwards;
 }
 
 .archive-intro__slice {
@@ -397,7 +397,7 @@ body {
   inset: -30%;
   transform: rotate(-12deg) translateX(-105%);
   background: #ff4f91;
-  animation: archive-slice 1.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  animation: archive-slice 2.05s cubic-bezier(0.76, 0, 0.24, 1) forwards;
 }
 
 .archive-intro__slice--two {
@@ -445,7 +445,7 @@ body {
   height: 100%;
   transform-origin: left;
   background: white;
-  animation: archive-progress 1.25s 0.25s both cubic-bezier(0.65, 0, 0.35, 1);
+  animation: archive-progress 2s 0.35s both cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @keyframes archive-float {
