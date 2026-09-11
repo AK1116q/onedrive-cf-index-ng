@@ -2,7 +2,7 @@ import type { OdFolderChildren } from '../types'
 import type { CSSProperties } from 'react'
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { formatModifiedDateTime } from '../utils/fileDetails'
 import { ChildIcon } from './FileListing'
@@ -12,10 +12,10 @@ import CoverHoverPreview from './CoverHoverPreview'
 import GeneratedCover from './GeneratedCover'
 import { loadBangumiCover } from '../utils/bangumiCover'
 import { shouldLoadFolderImage } from '../utils/folderCoverPolicy'
-import { getEpisodeLabel } from '../utils/episodeLabel'
+import { getEpisodeLabel, getEpisodeSortKey } from '../utils/episodeLabel'
 
 const BROKEN_IMAGE_CACHE_PREFIX = 'broken-cover-image:'
-const PRIORITY_IMAGE_COUNT = 10
+const PRIORITY_IMAGE_COUNT = 8
 
 const canUseSessionStorage = () => typeof window !== 'undefined' && 'sessionStorage' in window
 
@@ -68,6 +68,7 @@ const GridItem = ({
   const [coverLookupEnabled, setCoverLookupEnabled] = useState(!loadFolderImage)
   const anchor = useRef<HTMLAnchorElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const touchPreviewTriggered = useRef(false)
   const [previewLayout, setPreviewLayout] = useState<ReturnType<typeof coverPreviewLayout> | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
 
@@ -80,6 +81,7 @@ const GridItem = ({
           : undefined
       : undefined
     : thumbnailUrl
+  const coverSourceLabel = c.folder ? (imageUrl === officialCover ? '官方' : imageUrl ? '截图' : '生成') : undefined
 
   useEffect(() => {
     if (!loadFolderImage) {
@@ -146,21 +148,34 @@ const GridItem = ({
     setPreviewOpen(false)
     setPreviewLayout(null)
   }
-  const openPreview = () => {
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+  const showPreview = () => {
+    if (!anchor.current) return
+    setPreviewLayout(
+      coverPreviewLayout(
+        { width: window.innerWidth, height: window.innerHeight },
+        anchor.current.getBoundingClientRect(),
+        Boolean(c.folder),
+      ),
+    )
+    setPreviewOpen(true)
+  }
+  const openPreview = (allowTouch = false) => {
+    if (!allowTouch && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     clearTimeout(timer.current)
     timer.current = setTimeout(() => {
-      if (!anchor.current) return
-      setPreviewLayout(
-        coverPreviewLayout(
-          { width: window.innerWidth, height: window.innerHeight },
-          anchor.current.getBoundingClientRect(),
-          Boolean(c.folder),
-        ),
-      )
-      setPreviewOpen(true)
+      showPreview()
     }, 520)
   }
+  const openTouchPreview = () => {
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    touchPreviewTriggered.current = false
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      touchPreviewTriggered.current = true
+      showPreview()
+    }, 540)
+  }
+  const cancelTouchPreview = () => clearTimeout(timer.current)
 
   useEffect(() => () => clearTimeout(timer.current), [])
   useEffect(() => {
@@ -190,11 +205,25 @@ const GridItem = ({
         ref={anchor}
         className="block min-w-0 space-y-3 rounded-2xl focus-visible:outline-2 focus-visible:outline-sky-500"
         aria-label={c.name}
-        onPointerEnter={openPreview}
+        onPointerEnter={() => openPreview()}
         onPointerLeave={closePreview}
-        onFocus={openPreview}
+        onFocus={() => openPreview()}
         onBlur={closePreview}
-        onClick={dismissPreview}
+        onPointerDown={event => {
+          if (event.pointerType !== 'mouse') openTouchPreview()
+        }}
+        onPointerUp={event => {
+          if (event.pointerType !== 'mouse') cancelTouchPreview()
+        }}
+        onPointerCancel={cancelTouchPreview}
+        onClick={event => {
+          if (touchPreviewTriggered.current) {
+            event.preventDefault()
+            touchPreviewTriggered.current = false
+            return
+          }
+          dismissPreview()
+        }}
       >
         <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:shadow-xl dark:border-gray-500/30 dark:bg-gray-800">
           <GeneratedCover name={c.name} />
@@ -205,6 +234,7 @@ const GridItem = ({
               src={imageUrl}
               alt={c.name}
               title={imageUrl === officialCover ? '官方封面来源：Bangumi' : undefined}
+              sizes="(min-width: 640px) 13rem, 45vw"
               loading={priorityImage ? 'eager' : 'lazy'}
               decoding="async"
               fetchPriority={priorityImage ? 'high' : 'auto'}
@@ -222,6 +252,11 @@ const GridItem = ({
           {c.folder && (
             <span className="absolute right-2 bottom-2 rounded-full bg-white/85 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-sm dark:bg-gray-900/85 dark:text-gray-300">
               {c.folder.childCount}
+            </span>
+          )}
+          {coverSourceLabel && (
+            <span className="archive-cover-source absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-bold">
+              {coverSourceLabel}
             </span>
           )}
           {episodeLabel && (
@@ -264,6 +299,19 @@ const GridItem = ({
 const FolderGridLayout = ({ path, folderChildren }: { path: string; folderChildren: OdFolderChildren[] }) => {
   // Get item path from item name
   const getItemPath = (name: string) => `${path === '/' ? '' : path}/${encodeURIComponent(name)}`
+  const sortedChildren = useMemo(
+    () =>
+      [...folderChildren].sort((a, b) => {
+        if (Boolean(a.folder) !== Boolean(b.folder)) return a.folder ? -1 : 1
+        const aEpisode = getEpisodeSortKey(a.name)
+        const bEpisode = getEpisodeSortKey(b.name)
+        if (aEpisode !== null && bEpisode !== null && aEpisode !== bEpisode) return aEpisode - bEpisode
+        if (aEpisode !== null && bEpisode === null) return -1
+        if (aEpisode === null && bEpisode !== null) return 1
+        return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+      }),
+    [folderChildren],
+  )
 
   return (
     <div className="archive-panel rounded-3xl shadow-sm dark:text-gray-100">
@@ -272,7 +320,13 @@ const FolderGridLayout = ({ path, folderChildren }: { path: string; folderChildr
       </div>
 
       <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] sm:gap-4 sm:p-4">
-        {folderChildren.map((c: OdFolderChildren, index: number) => (
+        {sortedChildren.length === 0 && (
+          <div className="archive-empty-state col-span-full rounded-2xl px-6 py-12 text-center">
+            <div className="text-base font-bold">这个文件夹暂时是空的</div>
+            <div className="mt-1 text-sm opacity-75">上传新内容后，这里会自动显示封面和预览。</div>
+          </div>
+        )}
+        {sortedChildren.map((c: OdFolderChildren, index: number) => (
           <div
             key={c.id}
             style={

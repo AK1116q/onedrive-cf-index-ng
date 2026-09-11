@@ -16,7 +16,7 @@ const { coverPreviewLayout } = await loadTs('../src/utils/coverPreviewLayout.ts'
 const { buildFolderTree, countFolderTree } = await loadTs('../src/utils/folderTree.ts')
 const { cleanAnimeTitle, pickBangumiSubject } = await loadTs('../src/utils/animeTitle.ts')
 const { shouldLoadFolderImage } = await loadTs('../src/utils/folderCoverPolicy.ts')
-const { getEpisodeLabel } = await loadTs('../src/utils/episodeLabel.ts')
+const { getEpisodeLabel, getEpisodeSortKey } = await loadTs('../src/utils/episodeLabel.ts')
 const { assToVtt, getSubtitleCandidates, srtToVtt } = await loadTs('../src/utils/subtitleTracks.ts')
 
 test('only root-level folders load remote cover images', () => {
@@ -31,6 +31,13 @@ test('extracts readable episode labels from common anime filenames', () => {
   assert.equal(getEpisodeLabel('Show EP12 1080p.mkv'), '第 12 集')
   assert.equal(getEpisodeLabel('Show 第7话.mkv'), '第 07 集')
   assert.equal(getEpisodeLabel('NCOP.mkv'), null)
+})
+
+test('builds stable numeric episode sort keys', () => {
+  assert.equal(getEpisodeSortKey('[Nix-Raws] Show - S01E03.mkv'), 1003)
+  assert.equal(getEpisodeSortKey('Show EP12 1080p.mkv'), 12)
+  assert.equal(getEpisodeSortKey('Show 第7话.mkv'), 7)
+  assert.equal(getEpisodeSortKey('NCOP.mkv'), null)
 })
 
 test('builds same-name subtitle candidates for browser video playback', () => {

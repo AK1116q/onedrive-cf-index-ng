@@ -21,6 +21,7 @@ const waiting: Array<() => void> = []
 let activeRequests = 0
 const SESSION_CACHE_PREFIX = 'folder-tree-preview:'
 const SESSION_CACHE_TTL = 1000 * 60 * 30
+const getCacheKey = (path: string, revision: string, maxDepth?: number) => `${path}|${revision}|${maxDepth ?? 'all'}`
 
 const canUseSessionStorage = () => typeof window !== 'undefined' && 'sessionStorage' in window
 
@@ -60,8 +61,13 @@ const withRequestSlot = async <T>(request: () => Promise<T>) => {
   }
 }
 
-export function loadFolderTree(path: string, revision: string, listener?: TreeListener) {
-  const cacheKey = `${path}|${revision}`
+export function loadFolderTree(
+  path: string,
+  revision: string,
+  listener?: TreeListener,
+  options: { maxDepth?: number } = {},
+) {
+  const cacheKey = getCacheKey(path, revision, options.maxDepth)
   const existing = treeCache.get(cacheKey)
   if (existing) {
     if (listener) {
@@ -106,7 +112,7 @@ export function loadFolderTree(path: string, revision: string, listener?: TreeLi
       entry.value = value
       entry.listeners.forEach(update => update(value))
     },
-    { signal: controller.signal },
+    { maxDepth: options.maxDepth, signal: controller.signal },
   )
   treeCache.set(cacheKey, entry)
   entry.promise
@@ -119,11 +125,17 @@ export function loadFolderTree(path: string, revision: string, listener?: TreeLi
   return entry.promise
 }
 
-export function stopWatchingFolderTree(path: string, revision: string, listener: TreeListener) {
-  const entry = treeCache.get(`${path}|${revision}`)
+export function stopWatchingFolderTree(
+  path: string,
+  revision: string,
+  listener: TreeListener,
+  options: { maxDepth?: number } = {},
+) {
+  const cacheKey = getCacheKey(path, revision, options.maxDepth)
+  const entry = treeCache.get(cacheKey)
   entry?.listeners.delete(listener)
   if (entry && entry.listeners.size === 0 && !entry.complete) {
     entry.controller?.abort()
-    treeCache.delete(`${path}|${revision}`)
+    treeCache.delete(cacheKey)
   }
 }

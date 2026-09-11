@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { CSSProperties } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -14,13 +14,43 @@ import { getFileIcon } from '../utils/getFileIcon'
 
 const TREE_LOAD_DELAY_MS = 40
 
-const TreeRows = ({ nodes }: { nodes: FolderTreeNode[] }) => (
+const replaceNodeChildren = (
+  nodes: FolderTreeNode[],
+  path: string,
+  children: FolderTreeNode[],
+  error?: string,
+): FolderTreeNode[] =>
+  nodes.map(node => {
+    if (node.path === path) return { ...node, children, error }
+    if (node.children.length > 0)
+      return { ...node, children: replaceNodeChildren(node.children, path, children, error) }
+    return node
+  })
+
+const TreeRows = ({
+  nodes,
+  loadingPaths,
+  onExpandFolder,
+}: {
+  nodes: FolderTreeNode[]
+  loadingPaths: Set<string>
+  onExpandFolder: (node: FolderTreeNode) => void
+}) => (
   <ul className="space-y-0.5">
     {nodes.map(node => (
       <li key={node.id}>
         <div
           data-tree-row
           title={node.name}
+          role={node.isFolder ? 'button' : undefined}
+          tabIndex={node.isFolder ? 0 : undefined}
+          onPointerEnter={() => node.isFolder && onExpandFolder(node)}
+          onFocus={() => node.isFolder && onExpandFolder(node)}
+          onKeyDown={event => {
+            if (!node.isFolder || (event.key !== 'Enter' && event.key !== ' ')) return
+            event.preventDefault()
+            onExpandFolder(node)
+          }}
           className={`archive-hover-tree-row flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-xs ${
             node.isFolder ? 'archive-hover-tree-row--folder font-semibold' : ''
           }`}
@@ -30,10 +60,16 @@ const TreeRows = ({ nodes }: { nodes: FolderTreeNode[] }) => (
             icon={node.isFolder ? ['far', 'folder'] : getFileIcon(node.name)}
           />
           <span className="min-w-0 truncate">{node.name}</span>
+          {node.isFolder && loadingPaths.has(node.path) && (
+            <span className="archive-hover-tree-pill ml-auto shrink-0">读取中</span>
+          )}
+          {node.isFolder && !loadingPaths.has(node.path) && node.children.length === 0 && !node.error && (
+            <span className="archive-hover-tree-pill ml-auto shrink-0">移入展开</span>
+          )}
         </div>
         {node.children.length > 0 && (
           <div className="archive-hover-tree-children ml-3 border-l pl-2">
-            <TreeRows nodes={node.children} />
+            <TreeRows nodes={node.children} loadingPaths={loadingPaths} onExpandFolder={onExpandFolder} />
           </div>
         )}
         {node.error && <div className="ml-5 px-2 py-1 text-xs text-red-500">{node.error}</div>}
@@ -69,6 +105,32 @@ export default function CoverHoverPreview({
   const [tree, setTree] = useState<FolderTreeNode[]>()
   const [treeError, setTreeError] = useState('')
   const [treeComplete, setTreeComplete] = useState(false)
+  const [loadingPaths, setLoadingPaths] = useState<Set<string>>(() => new Set())
+  const expandedPaths = useRef(new Set<string>())
+
+  const expandFolder = useCallback(
+    (node: FolderTreeNode) => {
+      if (!folder || !node.isFolder || expandedPaths.current.has(node.path)) return
+      expandedPaths.current.add(node.path)
+      setLoadingPaths(paths => new Set(paths).add(node.path))
+      loadFolderTree(node.path, revision, undefined, { maxDepth: 0 })
+        .then(children => {
+          setTree(nodes => (nodes ? replaceNodeChildren(nodes, node.path, children) : nodes))
+        })
+        .catch(error => {
+          const message = error instanceof Error ? error.message : '目录读取失败。'
+          setTree(nodes => (nodes ? replaceNodeChildren(nodes, node.path, [], message) : nodes))
+        })
+        .finally(() => {
+          setLoadingPaths(paths => {
+            const next = new Set(paths)
+            next.delete(node.path)
+            return next
+          })
+        })
+    },
+    [folder, revision],
+  )
 
   useEffect(() => {
     let second = 0
@@ -89,7 +151,7 @@ export default function CoverHoverPreview({
     const timer = setTimeout(() => {
       if (!current) return
       started = true
-      loadFolderTree(path, revision, updateTree)
+      loadFolderTree(path, revision, updateTree, { maxDepth: 0 })
         .then(value => {
           if (!current) return
           setTree(value)
@@ -100,12 +162,22 @@ export default function CoverHoverPreview({
     setTree(undefined)
     setTreeError('')
     setTreeComplete(false)
+    setLoadingPaths(new Set())
+    expandedPaths.current.clear()
     return () => {
       current = false
       clearTimeout(timer)
-      if (started) stopWatchingFolderTree(path, revision, updateTree)
+      if (started) stopWatchingFolderTree(path, revision, updateTree, { maxDepth: 0 })
     }
   }, [folder, open, path, revision])
+
+  useEffect(() => {
+    if (!open || !treeComplete || !tree) return
+    const timers = tree
+      .filter(node => node.isFolder)
+      .map((node, index) => window.setTimeout(() => expandFolder(node), 120 * (index + 1)))
+    return () => timers.forEach(timer => window.clearTimeout(timer))
+  }, [expandFolder, open, tree, treeComplete])
 
   const counts = tree ? countFolderTree(tree) : null
 
@@ -157,7 +229,9 @@ export default function CoverHoverPreview({
               <div className="text-sm font-semibold">目录内容</div>
               <div className="archive-hover-file-list-meta mt-0.5 text-xs">
                 {counts
-                  ? `${counts.files} 个文件 · ${counts.folders} 个子文件夹${treeComplete ? '' : ' · 正在补全'}`
+                  ? `${counts.files} 个文件 · ${counts.folders} 个子文件夹${
+                      loadingPaths.size > 0 || !treeComplete ? ' · 正在补全' : ''
+                    }`
                   : '正在读取目录...'}
               </div>
             </div>
@@ -166,7 +240,7 @@ export default function CoverHoverPreview({
                 <div className="p-3 text-sm text-red-500">{treeError}</div>
               ) : tree ? (
                 tree.length > 0 ? (
-                  <TreeRows nodes={tree} />
+                  <TreeRows nodes={tree} loadingPaths={loadingPaths} onExpandFolder={expandFolder} />
                 ) : (
                   <div className="archive-hover-file-list-meta p-3 text-sm">空文件夹</div>
                 )

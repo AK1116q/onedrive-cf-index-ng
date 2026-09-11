@@ -1,6 +1,6 @@
 import type { OdFileObject } from '../../types'
 
-import { FC, useEffect, useMemo } from 'react'
+import { FC, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import axios from 'axios'
@@ -39,28 +39,46 @@ const VideoPlayer: FC<{
   isFlv: boolean
   mpegts: any
 }> = ({ videoName, videoUrl, width, height, thumbnail, subtitles, hashedToken, isFlv, mpegts }) => {
+  const [subtitleStatus, setSubtitleStatus] = useState<'searching' | 'loaded' | 'missing'>('searching')
+
   useEffect(() => {
     let currentSubtitleUrl = ''
     let cancelled = false
+    const wait = (duration: number) => new Promise(resolve => window.setTimeout(resolve, duration))
+    const findTrack = async () => {
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const track = document.querySelector('track')
+        if (track) return track
+        await wait(120)
+      }
+      return null
+    }
 
     const loadSubtitle = async () => {
-      const track = document.querySelector('track')
-      if (!track) return
+      setSubtitleStatus('searching')
+      const track = await findTrack()
+      if (!track) {
+        if (!cancelled) setSubtitleStatus('missing')
+        return
+      }
 
       for (const subtitle of subtitles) {
         const url = `/api/raw?path=${subtitle.path}${hashedToken ? `&odpt=${hashedToken}` : ''}`
         try {
           const response = await axios.get(url, { responseType: 'text' })
           const vttText = subtitleTextToVtt(response.data, subtitle.format)
-          if (cancelled || !vttText.trim()) return
+          if (cancelled) return
+          if (!vttText.trim()) continue
           currentSubtitleUrl = URL.createObjectURL(new Blob([vttText], { type: 'text/vtt;charset=utf-8' }))
           track.setAttribute('src', currentSubtitleUrl)
           track.setAttribute('label', subtitle.format.toUpperCase())
+          setSubtitleStatus('loaded')
           return
         } catch {
           // Try the next supported subtitle extension beside the video.
         }
       }
+      if (!cancelled) setSubtitleStatus('missing')
     }
 
     void loadSubtitle()
@@ -96,7 +114,18 @@ const VideoPlayer: FC<{
     // If the video is not in flv format, we can use the native plyr and add sources directly with the video URL
     plyrSource['sources'] = [{ src: videoUrl }]
   }
-  return <Plyr id="plyr" source={plyrSource as any} options={plyrOptions as any} />
+  return (
+    <>
+      <Plyr id="plyr" source={plyrSource as any} options={plyrOptions as any} />
+      <div className="archive-video-subtitle-status mt-3 rounded-2xl px-4 py-3 text-sm">
+        {subtitleStatus === 'loaded'
+          ? '已加载同名外挂字幕。'
+          : subtitleStatus === 'searching'
+            ? '正在查找同名外挂字幕...'
+            : '未找到同名外挂字幕。浏览器通常无法读取 MKV 内嵌字幕，可在视频旁放置同名 .srt、.ass 或 .vtt 文件。'}
+      </div>
+    </>
+  )
 }
 
 const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
