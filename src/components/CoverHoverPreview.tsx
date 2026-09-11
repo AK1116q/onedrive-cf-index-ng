@@ -12,7 +12,7 @@ import { countFolderTree } from '../utils/folderTree'
 import { loadFolderTree, stopWatchingFolderTree } from '../utils/loadFolderTree'
 import { getFileIcon } from '../utils/getFileIcon'
 
-const TREE_LOAD_DELAY_MS = 40
+const TREE_LOAD_DELAY_MS = 0
 
 const replaceNodeChildren = (
   nodes: FolderTreeNode[],

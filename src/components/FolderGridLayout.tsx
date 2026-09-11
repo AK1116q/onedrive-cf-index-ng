@@ -13,9 +13,12 @@ import GeneratedCover from './GeneratedCover'
 import { loadBangumiCover } from '../utils/bangumiCover'
 import { shouldLoadFolderImage } from '../utils/folderCoverPolicy'
 import { getEpisodeLabel, getEpisodeSortKey } from '../utils/episodeLabel'
+import { loadFolderTree } from '../utils/loadFolderTree'
 
 const BROKEN_IMAGE_CACHE_PREFIX = 'broken-cover-image:'
 const PRIORITY_IMAGE_COUNT = 8
+const HOVER_PREVIEW_DELAY_MS = 260
+const TOUCH_PREVIEW_DELAY_MS = 520
 
 const canUseSessionStorage = () => typeof window !== 'undefined' && 'sessionStorage' in window
 
@@ -68,6 +71,8 @@ const GridItem = ({
   const [coverLookupEnabled, setCoverLookupEnabled] = useState(!loadFolderImage)
   const anchor = useRef<HTMLAnchorElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const prefetchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const prefetchedPreview = useRef(false)
   const touchPreviewTriggered = useRef(false)
   const [previewLayout, setPreviewLayout] = useState<ReturnType<typeof coverPreviewLayout> | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -137,6 +142,7 @@ const GridItem = ({
 
   const closePreview = () => {
     clearTimeout(timer.current)
+    clearTimeout(prefetchTimer.current)
     timer.current = setTimeout(() => {
       setPreviewOpen(false)
       timer.current = setTimeout(() => setPreviewLayout(null), 170)
@@ -145,6 +151,7 @@ const GridItem = ({
   const keepPreviewOpen = () => clearTimeout(timer.current)
   const dismissPreview = () => {
     clearTimeout(timer.current)
+    clearTimeout(prefetchTimer.current)
     setPreviewOpen(false)
     setPreviewLayout(null)
   }
@@ -159,12 +166,22 @@ const GridItem = ({
     )
     setPreviewOpen(true)
   }
+  const prefetchPreviewTree = () => {
+    if (!c.folder || prefetchedPreview.current) return
+    prefetchedPreview.current = true
+    void loadFolderTree(path, c.lastModifiedDateTime, undefined, { maxDepth: 0 })
+  }
   const openPreview = (allowTouch = false) => {
     if (!allowTouch && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     clearTimeout(timer.current)
-    timer.current = setTimeout(() => {
-      showPreview()
-    }, 520)
+    clearTimeout(prefetchTimer.current)
+    prefetchTimer.current = setTimeout(prefetchPreviewTree, 60)
+    timer.current = setTimeout(
+      () => {
+        showPreview()
+      },
+      allowTouch ? TOUCH_PREVIEW_DELAY_MS : HOVER_PREVIEW_DELAY_MS,
+    )
   }
   const openTouchPreview = () => {
     if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
@@ -173,11 +190,20 @@ const GridItem = ({
     timer.current = setTimeout(() => {
       touchPreviewTriggered.current = true
       showPreview()
-    }, 540)
+    }, TOUCH_PREVIEW_DELAY_MS)
   }
-  const cancelTouchPreview = () => clearTimeout(timer.current)
+  const cancelTouchPreview = () => {
+    clearTimeout(timer.current)
+    clearTimeout(prefetchTimer.current)
+  }
 
-  useEffect(() => () => clearTimeout(timer.current), [])
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current)
+      clearTimeout(prefetchTimer.current)
+    },
+    [],
+  )
   useEffect(() => {
     if (!previewLayout) return
     const dismiss = () => dismissPreview()
