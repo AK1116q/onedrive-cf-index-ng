@@ -19,6 +19,7 @@ const BROKEN_IMAGE_CACHE_PREFIX = 'broken-cover-image:'
 const PRIORITY_IMAGE_COUNT = 8
 const HOVER_PREVIEW_DELAY_MS = 260
 const TOUCH_PREVIEW_DELAY_MS = 520
+const PREVIEW_TREE_DEPTH = 1
 
 const canUseSessionStorage = () => typeof window !== 'undefined' && 'sessionStorage' in window
 
@@ -169,7 +170,7 @@ const GridItem = ({
   const prefetchPreviewTree = () => {
     if (!c.folder || prefetchedPreview.current) return
     prefetchedPreview.current = true
-    void loadFolderTree(path, c.lastModifiedDateTime, undefined, { maxDepth: 0 })
+    void loadFolderTree(path, c.lastModifiedDateTime, undefined, { maxDepth: PREVIEW_TREE_DEPTH })
   }
   const openPreview = (allowTouch = false) => {
     if (!allowTouch && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
@@ -251,7 +252,7 @@ const GridItem = ({
           dismissPreview()
         }}
       >
-        <div className="relative aspect-[3/4] overflow-hidden rounded-2xl border border-gray-900/10 bg-gray-100 shadow-sm transition-all duration-300 ease-out group-hover:shadow-xl dark:border-gray-500/30 dark:bg-gray-800">
+        <div className="archive-cover-frame relative aspect-[3/4] overflow-hidden rounded-2xl transition-all duration-300 ease-out">
           <GeneratedCover name={c.name} />
           {imageUrl && !brokenThumbnail && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -292,15 +293,15 @@ const GridItem = ({
           )}
         </div>
 
-        <div dir="ltr" className="flex min-w-0 items-start gap-2 px-1 text-left">
+        <div dir="ltr" className="archive-item-title flex min-w-0 items-start gap-2 px-1 text-left">
           <span className="w-5 flex-shrink-0 text-center">
             <ChildIcon child={c} />
           </span>
-          <span data-cover-title className="block min-w-0 flex-1 truncate leading-5 font-medium">
+          <span data-cover-title className="block min-w-0 flex-1 truncate leading-5 font-semibold">
             {c.name}
           </span>
         </div>
-        <div className="truncate text-center font-mono text-xs text-gray-700 dark:text-gray-500">
+        <div className="archive-item-date truncate text-center font-mono text-xs">
           {formatModifiedDateTime(c.lastModifiedDateTime)}
         </div>
       </Link>

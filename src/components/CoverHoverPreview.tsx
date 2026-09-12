@@ -13,6 +13,7 @@ import { loadFolderTree, stopWatchingFolderTree } from '../utils/loadFolderTree'
 import { getFileIcon } from '../utils/getFileIcon'
 
 const TREE_LOAD_DELAY_MS = 0
+const PREVIEW_TREE_DEPTH = 1
 
 const replaceNodeChildren = (
   nodes: FolderTreeNode[],
@@ -110,7 +111,7 @@ export default function CoverHoverPreview({
 
   const expandFolder = useCallback(
     (node: FolderTreeNode) => {
-      if (!folder || !node.isFolder || expandedPaths.current.has(node.path)) return
+      if (!folder || !node.isFolder || node.children.length > 0 || expandedPaths.current.has(node.path)) return
       expandedPaths.current.add(node.path)
       setLoadingPaths(paths => new Set(paths).add(node.path))
       loadFolderTree(node.path, revision, undefined, { maxDepth: 0 })
@@ -151,7 +152,7 @@ export default function CoverHoverPreview({
     const timer = setTimeout(() => {
       if (!current) return
       started = true
-      loadFolderTree(path, revision, updateTree, { maxDepth: 0 })
+      loadFolderTree(path, revision, updateTree, { maxDepth: PREVIEW_TREE_DEPTH })
         .then(value => {
           if (!current) return
           setTree(value)
@@ -167,17 +168,9 @@ export default function CoverHoverPreview({
     return () => {
       current = false
       clearTimeout(timer)
-      if (started) stopWatchingFolderTree(path, revision, updateTree, { maxDepth: 0 })
+      if (started) stopWatchingFolderTree(path, revision, updateTree, { maxDepth: PREVIEW_TREE_DEPTH })
     }
   }, [folder, open, path, revision])
-
-  useEffect(() => {
-    if (!open || !treeComplete || !tree) return
-    const timers = tree
-      .filter(node => node.isFolder)
-      .map((node, index) => window.setTimeout(() => expandFolder(node), 120 * (index + 1)))
-    return () => timers.forEach(timer => window.clearTimeout(timer))
-  }, [expandFolder, open, tree, treeComplete])
 
   const counts = tree ? countFolderTree(tree) : null
 
@@ -229,8 +222,8 @@ export default function CoverHoverPreview({
               <div className="text-sm font-semibold">目录内容</div>
               <div className="archive-hover-file-list-meta mt-0.5 text-xs">
                 {counts
-                  ? `${counts.files} 个文件 · ${counts.folders} 个子文件夹${
-                      loadingPaths.size > 0 || !treeComplete ? ' · 正在补全' : ''
+                  ? `${counts.files} 个文件，${counts.folders} 个子文件夹${
+                      loadingPaths.size > 0 || !treeComplete ? '，正在补全' : ''
                     }`
                   : '正在读取目录...'}
               </div>

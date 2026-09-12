@@ -41,7 +41,7 @@ export default function CinematicChrome() {
         <div className="archive-background__dial">
           <span />
         </div>
-        <div className="archive-background__ticker">NEKOMIMI ARCHIVE · MEDIA LIBRARY · WATCH LIST ·</div>
+        <div className="archive-background__ticker">NEKOMIMI ARCHIVE MEDIA LIBRARY WATCH LIST</div>
         <div className="archive-background__character">
           {/* Decorative user-provided artwork; keep it out of the accessibility tree. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -54,12 +54,12 @@ export default function CinematicChrome() {
           <div className="archive-intro__slice archive-intro__slice--one" />
           <div className="archive-intro__slice archive-intro__slice--two" />
           <div className="archive-intro__content">
-            <div className="archive-intro__eyebrow">NEKOMIMI · ARCHIVE</div>
+            <div className="archive-intro__eyebrow">NEKOMIMI / ARCHIVE</div>
             <div className="archive-intro__title">看番云盘</div>
             <div className="archive-intro__line">
               <span />
             </div>
-            <div className="archive-intro__status">WELCOME HOME · CONNECTING</div>
+            <div className="archive-intro__status">WELCOME HOME / CONNECTING</div>
           </div>
         </div>
       )}
