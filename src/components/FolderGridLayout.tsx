@@ -1,8 +1,11 @@
 import type { OdFolderChildren } from '../types'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, MouseEvent } from 'react'
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 
 import { formatModifiedDateTime } from '../utils/fileDetails'
 import { ChildIcon } from './FileListing'
@@ -52,6 +55,7 @@ const GridItem = ({
   parentPath: string
   priorityImage: boolean
 }) => {
+  const router = useRouter()
   const loadFolderImage = shouldLoadFolderImage(parentPath, Boolean(c.folder))
   const episodeLabel = c.file ? getEpisodeLabel(c.name) : null
   const hashedToken = getStoredToken(path)
@@ -77,6 +81,7 @@ const GridItem = ({
   const touchPreviewTriggered = useRef(false)
   const [previewLayout, setPreviewLayout] = useState<ReturnType<typeof coverPreviewLayout> | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [downloadingFolder, setDownloadingFolder] = useState(false)
 
   const imageUrl = c.folder
     ? loadFolderImage
@@ -197,6 +202,48 @@ const GridItem = ({
     clearTimeout(timer.current)
     clearTimeout(prefetchTimer.current)
   }
+  const downloadFolder = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!c.folder || downloadingFolder) return
+
+    const toastId = `folder-download-${c.id}`
+    setDownloadingFolder(true)
+    dismissPreview()
+    toast.loading(`正在准备打包：${c.name}`, { id: toastId })
+    try {
+      const { downloadTreelikeMultipleFiles, traverseFolder } = await import('./MultiFileDownloader')
+      const createFolderDownloadItems = async function* () {
+        for await (const item of traverseFolder(path)) {
+          if (item.error) throw new Error(`${decodeURIComponent(item.path)} 读取失败：${item.error.message}`)
+
+          const token = item.isFolder ? null : getStoredToken(item.path)
+          const params = new URLSearchParams({ path: item.path })
+          if (token) params.set('odpt', token)
+
+          yield {
+            name: item.meta.name,
+            path: item.path,
+            isFolder: item.isFolder,
+            url: item.isFolder ? undefined : `/api/raw?${params}`,
+          }
+        }
+      }
+
+      await downloadTreelikeMultipleFiles({
+        toastId,
+        router,
+        files: createFolderDownloadItems(),
+        basePath: path,
+        folder: c.name,
+      })
+      toast.success(`已开始下载：${c.name}`, { id: toastId })
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '文件夹打包失败，请稍后再试。', { id: toastId })
+    } finally {
+      setDownloadingFolder(false)
+    }
+  }
 
   useEffect(
     () => () => {
@@ -277,7 +324,7 @@ const GridItem = ({
             />
           )}
           {c.folder && (
-            <span className="absolute right-2 bottom-2 rounded-full bg-white/85 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-sm dark:bg-gray-900/85 dark:text-gray-300">
+            <span className="absolute top-2 right-2 rounded-full bg-white/85 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-sm dark:bg-gray-900/85 dark:text-gray-300">
               {c.folder.childCount}
             </span>
           )}
@@ -305,6 +352,18 @@ const GridItem = ({
           {formatModifiedDateTime(c.lastModifiedDateTime)}
         </div>
       </Link>
+      {c.folder && (
+        <button
+          type="button"
+          aria-label={`下载 ${c.name} 整个文件夹`}
+          title={`下载 ${c.name} 整个文件夹`}
+          disabled={downloadingFolder}
+          className="archive-folder-download"
+          onClick={downloadFolder}
+        >
+          <FontAwesomeIcon icon={downloadingFolder ? 'cloud' : 'file-download'} />
+        </button>
+      )}
       {previewLayout && (
         <CoverHoverPreview
           name={c.name}
