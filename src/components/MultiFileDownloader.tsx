@@ -24,7 +24,7 @@ export function DownloadingToast({ router, progress }: { router: NextRouter; pro
         </div>
       </div>
       <button
-        className="rounded bg-red-500 p-2 text-white hover:bg-red-400 focus:outline-none focus:ring focus:ring-red-300"
+        className="rounded bg-red-500 p-2 text-white hover:bg-red-400 focus:ring focus:ring-red-300 focus:outline-none"
         onClick={() => router.reload()}
       >
         {'取消'}
@@ -49,6 +49,19 @@ export function downloadBlob({ blob, name }: { blob: Blob; name: string }) {
   el.remove()
 }
 
+async function fetchDownloadBlob(url: string, name: string): Promise<Blob> {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`${name} 下载失败（${response.status}）。`)
+  }
+  const contentType = response.headers.get('content-type') ?? ''
+  const blob = await response.blob()
+  if (contentType.includes('application/json') || contentType.includes('text/html')) {
+    throw new Error(`${name} 下载到了错误响应，不是原始文件。`)
+  }
+  return blob
+}
+
 /**
  * Download multiple files after compressing them into a zip
  * @param toastId Toast ID to be used for toast notification
@@ -71,12 +84,7 @@ export async function downloadMultipleFiles({
 
   // Add selected file blobs to zip
   files.forEach(({ name, url }) => {
-    dir.file(
-      name,
-      fetch(url).then(r => {
-        return r.blob()
-      })
-    )
+    dir.file(name, fetchDownloadBlob(url, name))
   })
 
   // Create zip file and download it
@@ -129,7 +137,7 @@ export async function downloadTreelikeMultipleFiles({
       .reverse()
       .findIndex(
         ({ path: parent }) =>
-          path.substring(0, parent.length) === parent && path.substring(parent.length + 1).indexOf('/') === -1
+          path.substring(0, parent.length) === parent && path.substring(parent.length + 1).indexOf('/') === -1,
       )
     if (i === -1) {
       throw new Error('File array does not satisfy requirement')
@@ -140,10 +148,7 @@ export async function downloadTreelikeMultipleFiles({
     if (isFolder) {
       map.push({ path, dir: dir.folder(name)! })
     } else {
-      dir.file(
-        name,
-        fetch(url!).then(r => r.blob())
-      )
+      dir.file(name, fetchDownloadBlob(url!, name))
     }
   }
 
